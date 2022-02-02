@@ -14,7 +14,7 @@ extension Sync {
         guard let entity = NSEntityDescription.entity(forEntityName: entityName, in: context) else { abort() }
         let localPrimaryKey = entity.sync_localPrimaryKey()
         let fetchRequest = NSFetchRequest<ResultType>(entityName: entityName)
-        fetchRequest.predicate = NSPredicate(format: "%K = %@", localPrimaryKey, id as! NSObject)
+        fetchRequest.predicate = NSPredicate(format: "%K = %@", localPrimaryKey!, id as! NSObject)
 
         let objects = try context.fetch(fetchRequest)
 
@@ -36,9 +36,9 @@ extension Sync {
         guard let entity = NSEntityDescription.entity(forEntityName: entityName, in: context) else { abort() }
         let localPrimaryKey = entity.sync_localPrimaryKey()
         let remotePrimaryKey = entity.sync_remotePrimaryKey()
-        guard let id = changes[remotePrimaryKey] as? NSObject else { fatalError("Couldn't find primary key \(remotePrimaryKey) in JSON for object in entity \(entityName)") }
+        guard let id = changes[remotePrimaryKey!] as? NSObject else { fatalError("Couldn't find primary key \(remotePrimaryKey) in JSON for object in entity \(entityName)") }
         let fetchRequest = NSFetchRequest<ResultType>(entityName: entityName)
-        fetchRequest.predicate = NSPredicate(format: "%K = %@", localPrimaryKey, id)
+        fetchRequest.predicate = NSPredicate(format: "%K = %@", localPrimaryKey!, id)
 
         let fetchedObjects = try context.fetch(fetchRequest)
         let insertedOrUpdatedObjects: [ResultType]
@@ -76,7 +76,7 @@ extension Sync {
         guard let entity = NSEntityDescription.entity(forEntityName: entityName, in: context) else { fatalError("Couldn't find an entity named \(entityName)") }
         let localPrimaryKey = entity.sync_localPrimaryKey()
         let fetchRequest = NSFetchRequest<ResultType>(entityName: entityName)
-        fetchRequest.predicate = NSPredicate(format: "%K = %@", localPrimaryKey, id as! NSObject)
+        fetchRequest.predicate = NSPredicate(format: "%K = %@", localPrimaryKey!, id as! NSObject)
 
         let objects = try context.fetch(fetchRequest)
         for updated in objects {
@@ -103,7 +103,7 @@ extension Sync {
         guard let entity = NSEntityDescription.entity(forEntityName: entityName, in: context) else { abort() }
         let localPrimaryKey = entity.sync_localPrimaryKey()
         let fetchRequest = NSFetchRequest<NSManagedObject>(entityName: entityName)
-        fetchRequest.predicate = NSPredicate(format: "%K = %@", localPrimaryKey, id as! NSObject)
+        fetchRequest.predicate = NSPredicate(format: "%K = %@", localPrimaryKey!, id as! NSObject)
 
         let objects = try context.fetch(fetchRequest)
         guard objects.count > 0 else { return }

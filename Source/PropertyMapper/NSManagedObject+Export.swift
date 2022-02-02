@@ -54,8 +54,8 @@ public extension NSManagedObject {
     /// Fills the `NSManagedObject` with the contents of the dictionary using a convention-over-configuration paradigm mapping the Core Data attributes to their conterparts in JSON using snake_case.
     ///
     /// - Returns: The JSON dictionary to be used to fill the values of your `NSManagedObject`.
-    func export() -> [String: Any] {
-        return hyp_dictionary(using: .array)
+    func export() -> Dictionary<String, Any?> {
+        return hyp_dictionary(.array)
     }
 
     /// Fills the `NSManagedObject` with the contents of the dictionary using a convention-over-configuration paradigm mapping the Core Data attributes to their conterparts in JSON using snake_case.

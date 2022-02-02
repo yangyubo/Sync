@@ -1,6 +1,5 @@
 @import XCTest;
 
-#import "Inflections.h"
 
 @interface NSString (PrivateInflections)
 

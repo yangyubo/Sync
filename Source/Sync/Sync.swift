@@ -149,8 +149,8 @@ public protocol SyncDelegate: class {
     class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, parentRelationship: NSRelationshipDescription?, inContext context: NSManagedObjectContext, operations: Sync.OperationOptions, shouldContinueBlock: (() -> Bool)?, objectJSONBlock: ((_ objectJSON: [String: Any]) -> [String: Any])?) throws {
         guard let entity = NSEntityDescription.entity(forEntityName: entityName, in: context) else { fatalError("Entity named \(entityName) not found.") }
 
-        let localPrimaryKey = entity.sync_localPrimaryKey()
-        let remotePrimaryKey = entity.sync_remotePrimaryKey()
+        let localPrimaryKey = entity.sync_localPrimaryKey()!
+        let remotePrimaryKey = entity.sync_remotePrimaryKey()!
         let shouldLookForParent = parent == nil && predicate == nil
 
         var finalPredicate = predicate
@@ -183,10 +183,10 @@ public protocol SyncDelegate: class {
         
         // We have inserted, updated, and deleted objects. Now lets put them in the correct order if appropriate.
         if let parentRelationship = parentRelationship, parentRelationship.isOrdered, let parent = parent, let objects = parent.value(forKey: parentRelationship.name) as? NSOrderedSet {
-            let changeIDs = (changes as NSArray).value(forKey: parentRelationship.destinationEntity!.sync_remotePrimaryKey()) as! NSArray
+            let changeIDs = (changes as NSArray).value(forKey: parentRelationship.destinationEntity!.sync_remotePrimaryKey()!) as! NSArray
             
             for case let safeObject as NSManagedObject in objects.array {
-                let currentID = safeObject.value(forKey: safeObject.entity.sync_localPrimaryKey())!
+                let currentID = safeObject.value(forKey: safeObject.entity.sync_localPrimaryKey()!)!
                 let remoteIndex = changeIDs.index(of: currentID)
                 let relatedObjects = parent.mutableOrderedSetValue(forKey: parentRelationship.name)
                 

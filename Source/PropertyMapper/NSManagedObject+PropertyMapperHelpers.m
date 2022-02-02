@@ -3,7 +3,6 @@
 #import "PropertyMapper.h"
 #import "Inflections.h"
 #import "NSEntityDescription+PrimaryKey.h"
-#import "NSDate+PropertyMapper.h"
 #import "NSPropertyDescription+Sync.h"
 
 static NSString * const PropertyMapperDestroyKey = @"destroy";

@@ -1,5 +1,4 @@
 import CoreData
-import Sync.NSEntityDescription_PrimaryKey
 
 public extension NSManagedObjectContext {
     /**
@@ -15,7 +14,7 @@ public extension NSManagedObjectContext {
 
         if let localPrimaryKey = localPrimaryKey as? NSObject, let entity = NSEntityDescription.entity(forEntityName: entityName, in: self) {
             let request = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
-            request.predicate = NSPredicate(format: "%K = %@", entity.sync_localPrimaryKey(), localPrimaryKey)
+            request.predicate = NSPredicate(format: "%K = %@", entity.sync_localPrimaryKey()!, localPrimaryKey)
             do {
                 let objects = try fetch(request)
                 result = objects.first as? NSManagedObject

@@ -21,6 +21,7 @@ class ExportTests: XCTestCase {
         // Fill in transformable attributes is not supported in Swift 3. Crashes when saving the context.
         let dataStack = Helper.dataStackWithModelName("137")
         let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: dataStack.mainContext)
+        
         user.fill(with: self.sampleSnakeCaseJSON)
         try! dataStack.mainContext.save()
 
@@ -329,7 +330,7 @@ class ExportTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("482")
         let user = NSEntityDescription.insertNewObject(forEntityName: "User", into: dataStack.mainContext)
         user.fill(with: userJson)
-        try! dataStack.mainContext.save()
+        try? dataStack.mainContext.save()
         
         let result = user.export()
         

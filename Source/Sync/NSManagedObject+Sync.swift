@@ -13,7 +13,7 @@ extension NSManagedObject {
      */
     func sync_copyInContext(_ context: NSManagedObjectContext) -> NSManagedObject {
         guard let entityName = self.entity.name else { fatalError("Couldn't find entity name") }
-        let localPrimaryKey = value(forKey: self.entity.sync_localPrimaryKey())
+        let localPrimaryKey = value(forKey: self.entity.sync_localPrimaryKey()!)
         guard let copiedObject = context.safeObject(entityName, localPrimaryKey: localPrimaryKey, parent: nil, parentRelationshipName: nil) else { fatalError("Couldn't fetch a safe object from entityName: \(entityName) localPrimaryKey: \(String(describing: localPrimaryKey))") }
 
         return copiedObject
@@ -34,7 +34,7 @@ extension NSManagedObject {
         for relationship in entity.sync_relationships() {
             let suffix = relationship.isToMany ? "_ids" : "_id"
             let constructedKeyName = relationship.name.hyp_snakeCase() + suffix
-            let keyName = relationship.customKey ?? constructedKeyName
+            let keyName = relationship.customKey() ?? constructedKeyName
 
             if relationship.isToMany {
                 var children: Any?
@@ -127,7 +127,7 @@ extension NSManagedObject {
             } else {
                 localRelationship = self.value(forKey: relationship.name) as? NSSet ?? NSSet()
             }
-            let localItems = localRelationship.value(forKey: destinationEntity.sync_localPrimaryKey()) as? NSSet ?? NSSet()
+            let localItems = localRelationship.value(forKey: destinationEntity.sync_localPrimaryKey()!) as? NSSet ?? NSSet()
 
             let deletedItems = NSMutableArray(array: localItems.allObjects)
             let removedRemoteItems = remoteItems as? [Any] ?? [Any]()
@@ -141,7 +141,7 @@ extension NSManagedObject {
             let fetchedObjects = try? managedObjectContext.fetch(request) as? [NSManagedObject] ?? [NSManagedObject]()
             guard let objects = fetchedObjects else { return }
             for safeObject in objects {
-                let currentID = safeObject.value(forKey: safeObject.entity.sync_localPrimaryKey())!
+                let currentID = safeObject.value(forKey: safeObject.entity.sync_localPrimaryKey()!)!
                 for inserted in insertedItems {
                     if (currentID as AnyObject).isEqual(inserted) {
                         if relationship.isOrdered {
@@ -181,7 +181,7 @@ extension NSManagedObject {
 
             if relationship.isOrdered {
                 for safeObject in objects {
-                    let currentID = safeObject.value(forKey: safeObject.entity.sync_localPrimaryKey())!
+                    let currentID = safeObject.value(forKey: safeObject.entity.sync_localPrimaryKey()!)!
                     let remoteIndex = remoteItems.index(of: currentID)
                     let relatedObjects = self.mutableOrderedSetValue(forKey: relationship.name)
 
@@ -218,7 +218,7 @@ extension NSManagedObject {
                 setValue(nil, forKey: relationship.name)
             }
         } else {
-            if let customRelationshipName = relationship.customKey {
+            if let customRelationshipName = relationship.customKey() {
                 if customRelationshipName.contains(".") {
                     var rootObject: [String: Any]? = dictionary
                     let deepMappingKeys = customRelationshipName.split(separator: ".").map { String($0)}
@@ -246,7 +246,7 @@ extension NSManagedObject {
         guard let childEntityName = destinationEntity.name else { abort() }
 
         if let children = children {
-            let childIDs = (children as NSArray).value(forKey: destinationEntity.sync_remotePrimaryKey())
+            let childIDs = (children as NSArray).value(forKey: destinationEntity.sync_remotePrimaryKey()!)
 
             if childIDs is NSNull {
                 if value(forKey: relationship.name) != nil {
@@ -262,7 +262,7 @@ extension NSManagedObject {
                     } else {
                         localRelationship = self.value(forKey: relationship.name) as? NSSet ?? NSSet()
                     }
-                    let localItems = localRelationship.value(forKey: destinationEntity.sync_localPrimaryKey()) as? NSSet ?? NSSet()
+                    let localItems = localRelationship.value(forKey: destinationEntity.sync_localPrimaryKey()!) as? NSSet ?? NSSet()
 
                     let deletedItems = NSMutableArray(array: localItems.allObjects)
                     let removedRemoteItems = remoteItems as? [Any] ?? [Any]()
@@ -274,7 +274,7 @@ extension NSManagedObject {
                     if deletedItems.count > 0 {
                         safeLocalObjects = try context.fetch(request) as? [NSManagedObject] ?? [NSManagedObject]()
                         for safeObject in safeLocalObjects! {
-                            let currentID = safeObject.value(forKey: safeObject.entity.sync_localPrimaryKey())!
+                            let currentID = safeObject.value(forKey: safeObject.entity.sync_localPrimaryKey()!)!
                             for deleted in deletedItems {
                                 if (currentID as AnyObject).isEqual(deleted) {
                                     if relationship.isOrdered {
@@ -308,7 +308,7 @@ extension NSManagedObject {
 
             if let entity = NSEntityDescription.entity(forEntityName: childEntityName, in: context) {
                 if manyToMany {
-                    childPredicate = NSPredicate(format: "ANY %K IN %@", entity.sync_localPrimaryKey(), childrenIDs)
+                    childPredicate = NSPredicate(format: "ANY %K IN %@", entity.sync_localPrimaryKey()!, childrenIDs)
                 } else {
                     guard let inverseEntityName = relationship.inverseRelationship?.name else { fatalError() }
                     let primaryKeyAttribute = entity.sync_primaryKeyAttribute()
@@ -316,8 +316,10 @@ extension NSManagedObject {
                     // Required in order to convert the JSON IDs into the same type as the ones Core Data expects. If the local primary key
                     // is of type Date, then we need to convert the array of strings in the JSON to be an array of dates.
                     // More info: https://github.com/3lvis/Sync/pull/477
-                    let ids = childrenIDs.compactMap { value(forAttributeDescription: primaryKeyAttribute, usingRemoteValue: $0) }
-                    childPredicate = NSPredicate(format: "ANY %K IN %@ OR %K = %@", entity.sync_localPrimaryKey(), ids, inverseEntityName, self)
+                    let ids = childrenIDs.compactMap {
+                        valueForAttributeDescription(primaryKeyAttribute! ,usingRemoteValue: $0)
+                        }
+                    childPredicate = NSPredicate(format: "ANY %K IN %@ OR %K = %@", entity.sync_localPrimaryKey()!, ids, inverseEntityName, self)
                 }
             }
 
@@ -389,7 +391,7 @@ extension NSManagedObject {
         var filteredObjectDictionary: [String: Any]?
         var jsonContainsRelationship = false
 
-        if let customRelationshipName = relationship.customKey {
+        if let customRelationshipName = relationship.customKey() {
             if customRelationshipName.contains(".") {
                 var rootObject: [String: Any]? = dictionary
                 let deepMappingKeys = customRelationshipName.split(separator: ".").map { String($0)}
@@ -424,7 +426,7 @@ extension NSManagedObject {
             guard let entityName = destinationEntity.name else { return }
             guard let entity = NSEntityDescription.entity(forEntityName: entityName, in: managedObjectContext) else { return }
 
-            let localPrimaryKey = toOneObjectDictionary[entity.sync_remotePrimaryKey()]
+            let localPrimaryKey = toOneObjectDictionary[entity.sync_remotePrimaryKey() ?? ""]
             let object = managedObjectContext.safeObject(entityName, localPrimaryKey: localPrimaryKey, parent: self, parentRelationshipName: relationship.name) ?? NSEntityDescription.insertNewObject(forEntityName: entityName, into: managedObjectContext)
 
             object.sync_fill(with: toOneObjectDictionary, parent: self, parentRelationship: relationship, context: context, operations: operations, shouldContinueBlock: shouldContinueBlock, objectJSONBlock: objectJSONBlock)

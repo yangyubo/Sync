@@ -2,7 +2,6 @@
 
 #import "Inflections.h"
 #import "NSManagedObject+PropertyMapperHelpers.h"
-#import "NSDate+PropertyMapper.h"
 #import "NSPropertyDescription+Sync.h"
 
 static NSString * const PropertyMapperNestedAttributesKey = @"attributes";

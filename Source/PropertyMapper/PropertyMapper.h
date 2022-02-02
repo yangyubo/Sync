@@ -1,7 +1,6 @@
 @import CoreData;
 @import Foundation;
 
-#import <Sync/NSDate+PropertyMapper.h>
 #import <Sync/NSEntityDescription+PrimaryKey.h>
 #import <Sync/Inflections.h>
 

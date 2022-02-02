@@ -41,12 +41,14 @@ class DictionaryTests: XCTestCase {
         formatter.timeZone = TimeZone(identifier: "GMT")
 
         let result = user.hyp_dictionary(with: formatter, using: .snakeCase)
-
+        print(result)
         for (key, value) in compared {
             if let comparedValue = result[key] {
                 XCTAssertEqual(value as? NSObject, comparedValue as? NSObject)
             }
         }
+        XCTAssertEqual(compared as NSDictionary, result as NSDictionary)
+
 
         dataStack.drop()
     }
@@ -223,7 +225,8 @@ class DictionaryTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("142")
         let user = NSEntityDescription.insertNewObject(forEntityName: "TwoLetterEntity", into: dataStack.mainContext)
         user.hyp_fill(with: ["description": "test"])
-        try! dataStack.mainContext.save()
+       
+        try? dataStack.mainContext.save()
 
         let compared = ["description": "test"] as [String : Any]
 
@@ -270,8 +273,6 @@ class DictionaryTests: XCTestCase {
         let workoutExercises = NSMutableSet()
         workoutExercises.add(exercise)
         workout.setValue(workoutExercises, forKey: "workoutExercises")
-
-        try! dataStack.mainContext.save()
 
         return workout
     }

@@ -23,7 +23,7 @@ import CoreData
 
     private var modelBundle = Bundle.main
 
-    private var model: NSManagedObjectModel
+    public var model: NSManagedObjectModel
 
     private var containerURL = FileManager.sqliteDirectoryURL
 

@@ -58,7 +58,7 @@ public extension NSPersistentContainer {
         self.performBackgroundTask { backgroundContext in
             do {
                 let result = try Sync.insertOrUpdate(changes, inEntityNamed: entityName, using: backgroundContext)
-                let localPrimaryKey = result.entity.sync_localPrimaryKey()
+                let localPrimaryKey = result.entity.sync_localPrimaryKey()!
                 let id = result.value(forKey: localPrimaryKey)
                 DispatchQueue.main.async {
                     completion(SyncResult.success(id!))
@@ -83,7 +83,7 @@ public extension NSPersistentContainer {
             do {
                 var updatedID: Any?
                 if let result = try Sync.update(id, with: changes, inEntityNamed: entityName, using: backgroundContext) {
-                    let localPrimaryKey = result.entity.sync_localPrimaryKey()
+                    let localPrimaryKey = result.entity.sync_localPrimaryKey()!
                     updatedID = result.value(forKey: localPrimaryKey)
                 }
                 DispatchQueue.main.async {

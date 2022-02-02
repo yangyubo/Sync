@@ -34,7 +34,7 @@ class FillWithDictionaryTests: XCTestCase {
             "tasks": [taskBoby],
             ] as [String: Any]
 
-        XCTAssertEqual(expected as NSDictionary, taskList.hyp_dictionary(using: .array) as NSDictionary)
+        XCTAssertEqual(expected as NSDictionary, taskList.hyp_dictionary(.array) as NSDictionary)
 
         dataStack.drop()
     }
@@ -65,7 +65,7 @@ class FillWithDictionaryTests: XCTestCase {
             "id": 1,
             ] as [String: Any]
 
-        XCTAssertEqual(expected as NSDictionary, user.hyp_dictionary(using: .none) as NSDictionary)
+        XCTAssertEqual(expected as NSDictionary, user.hyp_dictionary(.none) as NSDictionary)
 
         dataStack.drop()
     }
