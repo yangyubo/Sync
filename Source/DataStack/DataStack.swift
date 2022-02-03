@@ -14,7 +14,7 @@ public enum DataStackStoreType: Int {
     }
 }
 
-@objc public class DataStack: NSObject {
+public class DataStack: NSObject {
     private var storeType = DataStackStoreType.sqLite
 
     private var storeName: String?
@@ -35,7 +35,7 @@ public enum DataStackStoreType: Int {
      The context for the main queue. Please do not use this to mutate data, use `performInNewBackgroundContext`
      instead.
      */
-    @objc public lazy var mainContext: NSManagedObjectContext = {
+    public lazy var mainContext: NSManagedObjectContext = {
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.undoManager = nil
         context.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
@@ -50,7 +50,7 @@ public enum DataStackStoreType: Int {
      The context for the main queue. Please do not use this to mutate data, use `performBackgroundTask`
      instead.
      */
-    @objc public var viewContext: NSManagedObjectContext {
+    public var viewContext: NSManagedObjectContext {
         return self.mainContext
     }
 
@@ -63,7 +63,7 @@ public enum DataStackStoreType: Int {
         return context
     }()
 
-    @objc public private(set) lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator = {
+    public private(set) lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator = {
         let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: self.model)
         try! persistentStoreCoordinator.addPersistentStore(storeType: self.storeType, bundle: self.modelBundle, modelName: self.modelName, storeName: self.storeName, containerURL: self.containerURL)
 
@@ -82,7 +82,7 @@ public enum DataStackStoreType: Int {
      Initializes a DataStack using the bundle name as the model name, so if your target is called ModernApp,
      it will look for a ModernApp.xcdatamodeld.
      */
-    @objc public override init() {
+    public override init() {
         let bundle = Bundle.main
         if let bundleName = bundle.infoDictionary?["CFBundleName"] as? String {
             self.modelName = bundleName
@@ -96,7 +96,7 @@ public enum DataStackStoreType: Int {
      Initializes a DataStack using the provided model name.
      - parameter modelName: The name of your Core Data model (xcdatamodeld).
      */
-    @objc public init(modelName: String) {
+    public init(modelName: String) {
         self.modelName = modelName
         self.model = NSManagedObjectModel(bundle: self.modelBundle, name: self.modelName)
 
@@ -109,7 +109,7 @@ public enum DataStackStoreType: Int {
      - parameter storeType: The store type to be used, you have .InMemory and .SQLite, the first one is memory
      based and doesn't save to disk, while the second one creates a .sqlite file and stores things there.
      */
-    @objc public init(modelName: String, storeType: DataStackStoreType) {
+    public init(modelName: String, storeType: DataStackStoreType) {
         self.modelName = modelName
         self.storeType = storeType
         self.model = NSManagedObjectModel(bundle: self.modelBundle, name: self.modelName)
@@ -126,7 +126,7 @@ public enum DataStackStoreType: Int {
      - parameter storeType: The store type to be used, you have .InMemory and .SQLite, the first one is memory
      based and doesn't save to disk, while the second one creates a .sqlite file and stores things there.
      */
-    @objc public init(modelName: String, bundle: Bundle, storeType: DataStackStoreType) {
+    public init(modelName: String, bundle: Bundle, storeType: DataStackStoreType) {
         self.modelName = modelName
         self.modelBundle = bundle
         self.storeType = storeType
@@ -147,7 +147,7 @@ public enum DataStackStoreType: Int {
      name is AwesomeApp then the .sqlite file will be named AwesomeApp.sqlite, this attribute allows your to
      change that.
      */
-    @objc public init(modelName: String, bundle: Bundle, storeType: DataStackStoreType, storeName: String) {
+    public init(modelName: String, bundle: Bundle, storeType: DataStackStoreType, storeName: String) {
         self.modelName = modelName
         self.modelBundle = bundle
         self.storeType = storeType
@@ -170,7 +170,7 @@ public enum DataStackStoreType: Int {
      change that.
      - parameter containerURL: The container URL for the sqlite file when a store type of SQLite is used.
      */
-    @objc public init(modelName: String, bundle: Bundle, storeType: DataStackStoreType, storeName: String, containerURL: URL) {
+    public init(modelName: String, bundle: Bundle, storeType: DataStackStoreType, storeName: String, containerURL: URL) {
         self.modelName = modelName
         self.modelBundle = bundle
         self.storeType = storeType
@@ -187,7 +187,7 @@ public enum DataStackStoreType: Int {
      - parameter storeType: The store type to be used, you have .InMemory and .SQLite, the first one is memory
      based and doesn't save to disk, while the second one creates a .sqlite file and stores things there.
      */
-    @objc public init(model: NSManagedObjectModel, storeType: DataStackStoreType) {
+    public init(model: NSManagedObjectModel, storeType: DataStackStoreType) {
         self.model = model
         self.storeType = storeType
 
@@ -207,7 +207,7 @@ public enum DataStackStoreType: Int {
     /**
      Returns a new main context that is detached from saving to disk.
      */
-    @objc public func newDisposableMainContext() -> NSManagedObjectContext {
+    public func newDisposableMainContext() -> NSManagedObjectContext {
         let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         context.name = disposableContextName
         context.persistentStoreCoordinator = self.disposablePersistentStoreCoordinator
@@ -223,7 +223,7 @@ public enum DataStackStoreType: Int {
      Saving to this context doesn't merge with the main thread. This context is specially useful to run operations that don't block the main thread. To refresh your main thread objects for
      example when using a NSFetchedResultsController use `try self.fetchedResultsController.performFetch()`.
      */
-    @objc public func newNonMergingBackgroundContext() -> NSManagedObjectContext {
+    public func newNonMergingBackgroundContext() -> NSManagedObjectContext {
         let context = NSManagedObjectContext(concurrencyType: DataStack.backgroundConcurrencyType())
         context.persistentStoreCoordinator = self.persistentStoreCoordinator
         context.undoManager = nil
@@ -235,7 +235,7 @@ public enum DataStackStoreType: Int {
     /**
      Returns a background context perfect for data mutability operations. Make sure to never use it on the main thread. Use `performBlock` or `performBlockAndWait` to use it.
      */
-    @objc public func newBackgroundContext() -> NSManagedObjectContext {
+    public func newBackgroundContext() -> NSManagedObjectContext {
         let context = NSManagedObjectContext(concurrencyType: DataStack.backgroundConcurrencyType())
         context.name = backgroundContextName
         context.persistentStoreCoordinator = self.persistentStoreCoordinator
@@ -251,7 +251,7 @@ public enum DataStackStoreType: Int {
      Returns a background context perfect for data mutability operations.
      - parameter operation: The block that contains the created background context.
      */
-    @objc public func performInNewBackgroundContext(_ operation: @escaping (_ backgroundContext: NSManagedObjectContext) -> Void) {
+    public func performInNewBackgroundContext(_ operation: @escaping (_ backgroundContext: NSManagedObjectContext) -> Void) {
         let context = self.newBackgroundContext()
         let contextBlock: @convention(block) () -> Void = {
             operation(context)
@@ -264,7 +264,7 @@ public enum DataStackStoreType: Int {
      Returns a background context perfect for data mutability operations.
      - parameter operation: The block that contains the created background context.
      */
-    @objc public func performBackgroundTask(operation: @escaping (_ backgroundContext: NSManagedObjectContext) -> Void) {
+    public func performBackgroundTask(operation: @escaping (_ backgroundContext: NSManagedObjectContext) -> Void) {
         self.performInNewBackgroundContext(operation)
     }
 
