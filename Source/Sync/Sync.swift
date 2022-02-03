@@ -1,7 +1,8 @@
+import Foundation
 import CoreData
 
 
-public protocol SyncDelegate: class {
+public protocol SyncDelegate: AnyObject {
     /// Called before the JSON is used to create a new NSManagedObject.
     ///
     /// - parameter sync:        The Sync operation.

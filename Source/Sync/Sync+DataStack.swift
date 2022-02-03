@@ -1,3 +1,8 @@
+import Foundation
+import CoreData
+
+
+
 public extension DataStack {
     /// Syncs the entity using the received array of dictionaries, maps one-to-many, many-to-many and one-to-one relationships.
     /// It also syncs relationships where only the id is present, for example if your model is: Company -> Employee,

@@ -1,7 +1,7 @@
 import Foundation
 import CoreData
 
-@objc public enum DataStackStoreType: Int {
+public enum DataStackStoreType: Int {
     case inMemory, sqLite
 
     var type: String {

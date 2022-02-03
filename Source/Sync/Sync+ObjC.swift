@@ -1,3 +1,7 @@
+import Foundation
+import CoreData
+
+
 /**
  The enum for Objective-C, equals to Sync.OperationOptions in Swift.
  Objective-C does not support array of enum as parameter, thus we have listed all possible combinations in this enum.
