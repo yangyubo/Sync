@@ -71,7 +71,6 @@ public extension NSManagedObject {
         let valueExists = (value != nil) && !(value is NSNull)
         if valueExists {
             let processedValue = self.valueForAttributeDescription(attributeDescription!, usingRemoteValue: value!)
-            print("\(key), \(processedValue)")
 
             setValue(processedValue, forKey: key!)
         } else {
