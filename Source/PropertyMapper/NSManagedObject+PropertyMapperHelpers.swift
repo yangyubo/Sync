@@ -38,6 +38,8 @@ public extension NSManagedObject {
                         value = transformer.reverseTransformedValue(value)
                     }
                 }
+            } else if attributeDescription.attributeType == .transformableAttributeType {
+                value = self.value(forKey:attributeDescription.name)
             }
             return value
         }
