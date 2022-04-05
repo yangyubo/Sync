@@ -201,7 +201,7 @@ public extension NSManagedObject {
         let dataAttribute = (attributedClass == NSData.self)
         let numberValueAndDecimalAttribute = (remoteValue is NSNumber) && (attributedClass == NSDecimalNumber.self)
         let stringValueAndDecimalAttribute = (remoteValue is NSString) && (attributedClass == NSDecimalNumber.self)
-        let transformableAttribute = (!(attributedClass == nil) && (attributeDescription.valueTransformerName != nil) && value == nil)
+        let transformableAttribute = ((attributedClass == nil) && (attributeDescription.valueTransformerName != nil) && value == nil)
         
    
         if stringValueAndNumberAttribute {
