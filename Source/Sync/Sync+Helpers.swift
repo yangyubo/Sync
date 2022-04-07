@@ -40,7 +40,7 @@ extension Sync {
         guard let entity = NSEntityDescription.entity(forEntityName: entityName, in: context) else { abort() }
         let localPrimaryKey = entity.sync_localPrimaryKey()
         let remotePrimaryKey = entity.sync_remotePrimaryKey()
-        guard let id = changes[remotePrimaryKey!] as? NSObject else { fatalError("Couldn't find primary key \(remotePrimaryKey) in JSON for object in entity \(entityName)") }
+        guard let id = changes[remotePrimaryKey!] as? NSObject else { fatalError("Couldn't find primary key \(String(describing: remotePrimaryKey)) in JSON for object in entity \(entityName)") }
         let fetchRequest = NSFetchRequest<ResultType>(entityName: entityName)
         fetchRequest.predicate = NSPredicate(format: "%K = %@", localPrimaryKey!, id)
 

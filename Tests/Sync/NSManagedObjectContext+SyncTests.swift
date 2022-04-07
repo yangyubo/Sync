@@ -1,5 +1,5 @@
 import XCTest
-
+import CoreData
 import Sync
 
 class NSManagedObjectContext_SyncTests: XCTestCase {
