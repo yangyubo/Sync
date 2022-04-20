@@ -204,8 +204,8 @@ public extension NSManagedObject {
         let numberValueAndDecimalAttribute = (remoteValue is NSNumber) && (attributedClass == NSDecimalNumber.self)
         let stringValueAndDecimalAttribute = (remoteValue is NSString) && (attributedClass == NSDecimalNumber.self)
         let transformableAttribute = ((attributedClass == nil) && (attributeDescription.valueTransformerName != nil) && value == nil)
-        
    
+        
         if stringValueAndNumberAttribute {
             let formatter = NumberFormatter()
             formatter.locale = NSLocale(localeIdentifier: "en_US") as Locale
@@ -234,17 +234,19 @@ public extension NSManagedObject {
             value = NSDecimalNumber(string: (remoteValue as! String))
         } else if transformableAttribute {
             let transformer = ValueTransformer(forName: NSValueTransformerName(attributeDescription.valueTransformerName!))
-            if let transformer = transformer {
-                let newValue = transformer.transformedValue(remoteValue)
-                if let newValue = newValue {
-                    value = newValue
-                }
+            if transformer != nil {
+                if (transformer is NSSecureUnarchiveFromDataTransformer) {
+                    value = remoteValue
+                } else {
+                let newValue = transformer!.transformedValue(remoteValue)
+                if let newValue = newValue { value = newValue }
             }
+        }
         }
         
         return value as Any
     }
-
+    
     
     func remotePrefixUsingInflectionType(_ inflectionType: SyncPropertyMapperInflectionType) -> String {
         switch inflectionType {

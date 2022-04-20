@@ -41,7 +41,7 @@ public extension NSManagedObject {
             let attributeDescription: NSAttributeDescription?  = self.attributeDescriptionForRemoteKey(key)
             if attributeDescription != nil {
                 let valueExists = (value != nil) && !(value is NSNull)
-                if valueExists && (value is [String : Any?]) && attributeDescription!.attributeType != .binaryDataAttributeType {
+                if valueExists && (value is [String : Any]) && attributeDescription!.attributeType != .binaryDataAttributeType {
                     let remoteKey: String? = self.remoteKeyForAttributeDescription(attributeDescription!, inflectionType: .snakeCase)
                     let hasCustomKeyPath = (remoteKey != nil) && (remoteKey!.contains("."))
                     if hasCustomKeyPath {
@@ -55,6 +55,12 @@ public extension NSManagedObject {
                                 forKey: localKey,
                                 attributeDescription: keyPathAttributeDescription)
                         }
+                    } else {
+                        let localKey = attributeDescription!.name
+                        hyp_setDictionaryValue(
+                            value,
+                            forKey: localKey,
+                            attributeDescription: attributeDescription)
                     }
                 } else {
                     let localKey = attributeDescription!.name
@@ -268,7 +274,7 @@ public extension NSManagedObject {
                                 let attributesForToOneRelationship : Dictionary<String, Any> = self.attributesForToOneRelationship(relationships as! NSManagedObject, relationshipName: relationshipName, usingRelationshipType: relationshipType, parent: self, dateFormatter: dateFormatter, inflectionType: inflectionType)
                                 managedObjectAttributes.merge(attributesForToOneRelationship) { (_, second) in second }
                             } else {
-                                let attributesForToManyRelationship = self.attributesForToManyRelationship(relationships, relationshipName: relationshipName, usingRelationshipType: relationshipType, parent: self, dateFormatter: dateFormatter, inflectionType: inflectionType)
+                                let attributesForToManyRelationship = self.attributesForToManyRelationship(relationships as Any, relationshipName: relationshipName, usingRelationshipType: relationshipType, parent: self, dateFormatter: dateFormatter, inflectionType: inflectionType)
                                 managedObjectAttributes.merge(attributesForToManyRelationship) { (_, second) in second }
 
                             }
