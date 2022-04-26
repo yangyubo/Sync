@@ -52,7 +52,7 @@ class DataFilter: NSObject {
         if operations.contains(.delete) {
             var deletedObjectIDs = localPrimaryKeys
             deletedObjectIDs = deletedObjectIDs.filter { value in
-                !remotePrimaryKeysWithoutNils.contains { $0.isEqual(value) }
+                !remotePrimaryKeysWithoutNils.contains { $0.isEqual(value is UUID ? (value as? UUID)?.uuidString : value) }
             }
 
             for fetchedID in deletedObjectIDs {
@@ -65,7 +65,7 @@ class DataFilter: NSObject {
         if operations.contains(.insert) {
             var insertedObjectIDs = remotePrimaryKeysWithoutNils
             insertedObjectIDs = insertedObjectIDs.filter { value in
-                !localPrimaryKeys.contains { $0.isEqual(value) }
+                !localPrimaryKeys.contains { $0.isEqual($0 is UUID ? UUID(uuidString: (value as! String)) : value) }
             }
 
             for fetchedID in insertedObjectIDs {

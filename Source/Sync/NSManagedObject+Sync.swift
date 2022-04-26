@@ -305,6 +305,7 @@ extension NSManagedObject {
             let childrenIDs = (((childIDs as Any) as AnyObject) as? NSArray) ?? NSArray()
 
             if manyToMany {
+                // FIXME: This will delete a many-to-many record which means the whole thing is rebuilt.
                 childOperations.remove(.delete)
             }
 
