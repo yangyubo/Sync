@@ -47,7 +47,8 @@ public extension NSManagedObjectContext {
             do {
                 let objects = try self.fetch(request)
                 for object in objects {
-                    let fetchedID = object[attributeName] as! NSObject
+                    var fetchedID = object[attributeName] as! NSObject
+                    if fetchedID is UUID {fetchedID = (fetchedID as! UUID).uuidString as NSObject}
                     let objectID = object["objectID"] as! NSManagedObjectID
 
                     if let _ = result[fetchedID] {
