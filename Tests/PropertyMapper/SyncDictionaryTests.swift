@@ -41,7 +41,7 @@ class SyncDictionaryTests : XCTestCase {
         
         var hobbies: Data? = nil
         do {
-            hobbies = try NSKeyedArchiver.archivedData(withRootObject: ["Football", "Soccer", "Code", "More Code"], requiringSecureCoding: false)
+            hobbies = try NSKeyedArchiver.archivedData(withRootObject: ["Football", "Soccer", "Code", "More Code"], requiringSecureCoding: true)
             user.setValue(hobbies, forKey: "hobbies")
         } catch {
             assertionFailure("NSkeyedArchiver hobbies failed" , file: "SyncDictionaryTests", line: 49)
@@ -52,10 +52,10 @@ class SyncDictionaryTests : XCTestCase {
         do {
             expenses = try NSKeyedArchiver.archivedData(
                 withRootObject: [
-                    "cake": NSNumber(value: 12.50),
-                    "juice": NSNumber(value: 0.50)
+                    "cake": 12.50,
+                    "juice": 0.50
                 ],
-                requiringSecureCoding: false)
+                requiringSecureCoding: true)
             user.setValue(expenses, forKey: "expenses")
         } catch {
             assertionFailure("NSKeyedArchiver expenses failed", file: "SyncDictionaryTests", line: 57)
@@ -121,9 +121,9 @@ class SyncDictionaryTests : XCTestCase {
         
         var expenses: Data?
         do {
-            expenses = try NSKeyedArchiver.archivedData(withRootObject: ["cake" : NSNumber(value: 12.50),
-                                                                         "juice" : NSNumber(value: 0.50)],
-                                                        requiringSecureCoding: false)
+            expenses = try NSKeyedArchiver.archivedData(withRootObject: ["cake" : 12.50,
+                                                                         "juice" : 0.50],
+                                                        requiringSecureCoding: true)
             comparedDictionary["expenses"] = expenses
         } catch {
             assertionFailure("NSKeyedArchiver expenses failed", file: "SyncDictionaryTests", line: 131)
@@ -134,7 +134,7 @@ class SyncDictionaryTests : XCTestCase {
         var hobbies: Data?
         do {
             hobbies = try NSKeyedArchiver.archivedData(withRootObject: ["Football", "Soccer", "Code", "More Code"],
-                                                       requiringSecureCoding: false)
+                                                       requiringSecureCoding: true)
             comparedDictionary["hobbies"] = hobbies
         } catch {
             assertionFailure("NSKeyedArchiver hobbies failed", file: "SyncDictionaryTests", line: 143)
@@ -223,7 +223,7 @@ class SyncDictionaryTests : XCTestCase {
         var hobbies: Data?
         do {
             hobbies = try NSKeyedArchiver.archivedData(withRootObject: ["Football", "Soccer", "Code", "More Code"],
-                                                       requiringSecureCoding: false)
+                                                       requiringSecureCoding: true)
             user.setValue(hobbies, forKey: "hobbies")
         } catch {
             assertionFailure("NSKeyedArchiver hobbies failed", file: "SyncDictionaryTests", line: 222)
@@ -231,9 +231,9 @@ class SyncDictionaryTests : XCTestCase {
         
         var expenses: Data? = nil
         do {
-            expenses = try NSKeyedArchiver.archivedData(withRootObject: ["cake" : NSNumber(value: 12.50),
-                                                                         "juice" : NSNumber(value: 0.50)],
-                                                        requiringSecureCoding: false)
+            expenses = try NSKeyedArchiver.archivedData(withRootObject: ["cake" : 12.50,
+                                                                         "juice" : 0.50],
+                                                        requiringSecureCoding: true)
             user.setValue(expenses, forKey: "expenses")
         } catch {
             assertionFailure("NSKeyedArchiver expenses failed", file: "SyncDictionaryTests", line: 57)
@@ -271,9 +271,7 @@ class SyncDictionaryTests : XCTestCase {
         comparedDictionary["notes"] = [note1, note2, note3]
         
         for (key, value) in comparedDictionary {
-            if let comparedValue = dictionary[key] {
-                XCTAssertEqual(value as? NSObject, comparedValue as? NSObject)
-            }
+            XCTAssertEqual(value as? NSObject, dictionary[key] as? NSObject)
         }
         
         

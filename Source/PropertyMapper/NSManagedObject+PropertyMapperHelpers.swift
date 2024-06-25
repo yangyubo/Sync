@@ -222,7 +222,7 @@ public extension NSManagedObject {
             value = URL(string: (remoteValue as! String))
         } else if dataAttribute {
             do {
-                value = try NSKeyedArchiver.archivedData(withRootObject: remoteValue, requiringSecureCoding: false)
+                value = try NSKeyedArchiver.archivedData(withRootObject: remoteValue, requiringSecureCoding: true)
             } catch {
             }
         } else if numberValueAndDecimalAttribute {

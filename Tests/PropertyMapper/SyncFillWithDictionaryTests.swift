@@ -40,7 +40,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
         
         var hobbies: Data? = nil
         do {
-            hobbies = try NSKeyedArchiver.archivedData(withRootObject: ["Football", "Soccer", "Code", "More code"], requiringSecureCoding: false)
+            hobbies = try NSKeyedArchiver.archivedData(withRootObject: ["Football", "Soccer", "Code", "More code"], requiringSecureCoding: true)
             user.setValue(hobbies, forKey: "hobbies")
         } catch {
             assertionFailure("NSkeyedArchiver hobbies failed" , file: "SyncDictionaryTests", line: 49)
@@ -51,10 +51,10 @@ class SyncFillWithDictionaryTests : XCTestCase {
         do {
             expenses = try NSKeyedArchiver.archivedData(
                 withRootObject: [
-                    "cake": NSNumber(value: 12.50),
-                    "juice": NSNumber(value: 0.50)
+                    "cake": 12.50,
+                    "juice": 0.50
                 ],
-                requiringSecureCoding: false)
+                requiringSecureCoding: true)
             user.setValue(expenses, forKey: "expenses")
         } catch {
             assertionFailure("NSKeyedArchiver expenses failed", file: "SyncDictionaryTests", line: 57)
@@ -150,7 +150,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
         do {
             testData = try NSKeyedArchiver.archivedData(
                 withRootObject: "Data",
-                requiringSecureCoding: false)
+                requiringSecureCoding: true)
         } catch {
             assertionFailure("NSKeyedArchiver expenses failed", file: "SyncDictionaryTests", line: 57)
         }
@@ -218,7 +218,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
         do {
             testData = try NSKeyedArchiver.archivedData(
                 withRootObject: "Data",
-                requiringSecureCoding: false)
+                requiringSecureCoding: true)
         } catch {
             assertionFailure("NSKeyedArchiver expenses failed", file: "SyncDictionaryTests", line: 57)
         }
@@ -417,6 +417,8 @@ class SyncFillWithDictionaryTests : XCTestCase {
     }
     
     func testRegisteredTransformables() {
+        DateStringTransformer.register()
+        
         let values = ["registeredTransformable" : "/Date(1451606400000)/"]
         let dataStack = dataStack
         let user = userUsingDataStack(dataStack)
@@ -425,12 +427,11 @@ class SyncFillWithDictionaryTests : XCTestCase {
         let dateFormat = DateFormatter()
         dateFormat.dateFormat = "yyyy-MM-dd"
         dateFormat.timeZone = TimeZone(secondsFromGMT: 0)
-        // let date = dateFormat.date(from: "2016-01-01")
+        let date = dateFormat.date(from: "2016-01-01")
         
         XCTAssertNotNil(user.value(forKey: "registeredTransformable"))
-  // TODO: Fix Registered Transformables
-  //      XCTAssertEqual(user.value(forKey: "registeredTransformable") as? Date, date)
-  //      XCTAssertTrue(user.value(forKey: "registeredTransformable") is Date)
+        XCTAssertEqual(user.value(forKey: "registeredTransformable") as? Date, date)
+        XCTAssertTrue(user.value(forKey: "registeredTransformable") is Date)
     }
     
     func testCustomKey() {

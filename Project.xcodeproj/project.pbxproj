@@ -468,10 +468,7 @@
 		14E6523D1E809E9C000E7CC6 /* NSPropertyDescription+SyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E6523C1E809E9C000E7CC6 /* NSPropertyDescription+SyncTests.swift */; };
 		14E6523E1E809E9C000E7CC6 /* NSPropertyDescription+SyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E6523C1E809E9C000E7CC6 /* NSPropertyDescription+SyncTests.swift */; };
 		14E6523F1E809E9C000E7CC6 /* NSPropertyDescription+SyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E6523C1E809E9C000E7CC6 /* NSPropertyDescription+SyncTests.swift */; };
-		14E93C441DBCCD2800E3304E /* Sync.h in Headers */ = {isa = PBXBuildFile; fileRef = 14E93C431DBCCD2800E3304E /* Sync.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		14E93C461DBCCD2800E3304E /* Sync.h in Headers */ = {isa = PBXBuildFile; fileRef = 14E93C431DBCCD2800E3304E /* Sync.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		14F6275B1E7AE6B2001C2EA0 /* DataStack.swift in Headers */ = {isa = PBXBuildFile; fileRef = 1467388B1E7ADBA700913C8E /* DataStack.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		14F627611E7AE6B2001C2EA0 /* Sync.h in Headers */ = {isa = PBXBuildFile; fileRef = 14E93C431DBCCD2800E3304E /* Sync.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		14F627621E7AE6B2001C2EA0 /* Sync.swift in Headers */ = {isa = PBXBuildFile; fileRef = 44968BF91DA0021300E71A53 /* Sync.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		14F627631E7AE6B2001C2EA0 /* Sync+DataStack.swift in Headers */ = {isa = PBXBuildFile; fileRef = 142CD2A31DEF39AE002FDABE /* Sync+DataStack.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		14F627641E7AE6B2001C2EA0 /* Sync+NSPersistentContainer.swift in Headers */ = {isa = PBXBuildFile; fileRef = 142CD2AC1DEF3A01002FDABE /* Sync+NSPersistentContainer.swift */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -481,7 +478,6 @@
 		14F627681E7AE6B2001C2EA0 /* NSManagedObjectContext+Sync.swift in Headers */ = {isa = PBXBuildFile; fileRef = 44968BF81DA0021300E71A53 /* NSManagedObjectContext+Sync.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		14F627691E7AE6B2001C2EA0 /* SyncResult.swift in Headers */ = {isa = PBXBuildFile; fileRef = 14AF6AFA1DFC3D88009E5BC4 /* SyncResult.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		14F6276A1E7AE6B5001C2EA0 /* DataStack.swift in Headers */ = {isa = PBXBuildFile; fileRef = 1467388B1E7ADBA700913C8E /* DataStack.swift */; settings = {ATTRIBUTES = (Public, ); }; };
-		14F627701E7AE6B5001C2EA0 /* Sync.h in Headers */ = {isa = PBXBuildFile; fileRef = 14E93C431DBCCD2800E3304E /* Sync.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		14F627711E7AE6B5001C2EA0 /* Sync.swift in Headers */ = {isa = PBXBuildFile; fileRef = 44968BF91DA0021300E71A53 /* Sync.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		14F627721E7AE6B5001C2EA0 /* Sync+DataStack.swift in Headers */ = {isa = PBXBuildFile; fileRef = 142CD2A31DEF39AE002FDABE /* Sync+DataStack.swift */; settings = {ATTRIBUTES = (Public, ); }; };
 		14F627731E7AE6B5001C2EA0 /* Sync+NSPersistentContainer.swift in Headers */ = {isa = PBXBuildFile; fileRef = 142CD2AC1DEF3A01002FDABE /* Sync+NSPersistentContainer.swift */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -969,7 +965,6 @@
 		14D5255E1E7C1EC30063909F /* Sync+NSManagedObjectContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Sync+NSManagedObjectContext.swift"; sourceTree = "<group>"; };
 		14E652291E809A68000E7CC6 /* remote_key.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = remote_key.json; sourceTree = "<group>"; };
 		14E6523C1E809E9C000E7CC6 /* NSPropertyDescription+SyncTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NSPropertyDescription+SyncTests.swift"; sourceTree = "<group>"; };
-		14E93C431DBCCD2800E3304E /* Sync.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Sync.h; sourceTree = "<group>"; };
 		1AFF18C91FE1F08800C4BC3D /* 457-products.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "457-products.json"; sourceTree = "<group>"; };
 		1AFF18CA1FE1F08800C4BC3D /* 457-subcategories.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = "457-subcategories.json"; sourceTree = "<group>"; };
 		4458519C1E87BAF50025434E /* DictionaryTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DictionaryTests.swift; sourceTree = "<group>"; };
@@ -1129,7 +1124,6 @@
 				445851F11E87BB590025434E /* PrimaryKey */,
 				447409281E87BA4E0035B8DC /* PropertyMapper */,
 				44968BF41DA0021300E71A53 /* Sync */,
-				14E93C431DBCCD2800E3304E /* Sync.h */,
 				449828021D9F8F2D00E2BCA3 /* TestCheck */,
 			);
 			path = Source;
@@ -1598,7 +1592,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				14E93C441DBCCD2800E3304E /* Sync.h in Headers */,
 				14D93C481E4E67A200DED595 /* Sync.swift in Headers */,
 				14D93C491E4E67A200DED595 /* Sync+DataStack.swift in Headers */,
 				14D93C4A1E4E67A200DED595 /* Sync+NSPersistentContainer.swift in Headers */,
@@ -1616,7 +1609,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				14F6276A1E7AE6B5001C2EA0 /* DataStack.swift in Headers */,
-				14F627701E7AE6B5001C2EA0 /* Sync.h in Headers */,
 				14F627711E7AE6B5001C2EA0 /* Sync.swift in Headers */,
 				14F627721E7AE6B5001C2EA0 /* Sync+DataStack.swift in Headers */,
 				14F627731E7AE6B5001C2EA0 /* Sync+NSPersistentContainer.swift in Headers */,
@@ -1632,7 +1624,6 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				14E93C461DBCCD2800E3304E /* Sync.h in Headers */,
 				14A84E951E4E70B900701B8A /* Sync.swift in Headers */,
 				14A84E961E4E70B900701B8A /* Sync+DataStack.swift in Headers */,
 				14A84E971E4E70B900701B8A /* Sync+NSPersistentContainer.swift in Headers */,
@@ -1650,7 +1641,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				14F6275B1E7AE6B2001C2EA0 /* DataStack.swift in Headers */,
-				14F627611E7AE6B2001C2EA0 /* Sync.h in Headers */,
 				14F627621E7AE6B2001C2EA0 /* Sync.swift in Headers */,
 				14F627631E7AE6B2001C2EA0 /* Sync+DataStack.swift in Headers */,
 				14F627641E7AE6B2001C2EA0 /* Sync+NSPersistentContainer.swift in Headers */,

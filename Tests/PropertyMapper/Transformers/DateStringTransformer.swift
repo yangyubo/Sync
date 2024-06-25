@@ -19,7 +19,7 @@ class DateStringTransformer: ValueTransformer {
     
     override func transformedValue(_ value: Any?) -> Any? {
         if (value is String) {
-            let intStr = ((value as! String).replacingOccurrences(of: "/Date", with: "")).replacingOccurrences(of: ")/", with: "")
+            let intStr = ((value as! String).replacingOccurrences(of: "/Date(", with: "")).replacingOccurrences(of: ")/", with: "")
             let timestampMS = Int(intStr) ?? 0
             let timestamp = Double(timestampMS) / 1000.0
             let date = Date(timeIntervalSince1970: timestamp)
@@ -28,4 +28,14 @@ class DateStringTransformer: ValueTransformer {
             return value
         }
     }
+    
+    /// The name of the transformer. This is the name used to register the transformer using `ValueTransformer.setValueTrandformer(_"forName:)`.
+    static let name = NSValueTransformerName(rawValue: String(describing: DateStringTransformer.self))
+
+    /// Registers the value transformer with `ValueTransformer`.
+    public static func register() {
+        let transformer = DateStringTransformer()
+        ValueTransformer.setValueTransformer(transformer, forName: name)
+    }
+    
 }

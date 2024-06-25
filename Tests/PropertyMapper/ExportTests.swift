@@ -27,7 +27,7 @@ class ExportTests: XCTestCase {
 
         let compared = [
             "description": "reserved",
-            "inflection_binary_data": try! NSKeyedArchiver.archivedData(withRootObject: ["one", "two"], requiringSecureCoding: false) as NSData,
+            "inflection_binary_data": try! NSKeyedArchiver.archivedData(withRootObject: ["one", "two"], requiringSecureCoding: true) as NSData,
             "inflection_date": "1970-01-01",
             "randomRemoteKey": "randomRemoteKey",
             "inflection_id": 1,
@@ -63,7 +63,7 @@ class ExportTests: XCTestCase {
 
         let compared = [
             "description": "reserved",
-            "inflectionBinaryData": try! NSKeyedArchiver.archivedData(withRootObject: ["one", "two"], requiringSecureCoding: false) as NSData,
+            "inflectionBinaryData": try! NSKeyedArchiver.archivedData(withRootObject: ["one", "two"], requiringSecureCoding: true) as NSData,
             "inflectionDate": "1970-01-01",
             "randomRemoteKey": "randomRemoteKey",
             "inflectionID": 1,
