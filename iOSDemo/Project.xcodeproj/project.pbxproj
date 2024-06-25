@@ -11,8 +11,6 @@
 		140B74AF1FB1367A00FCDEF6 /* Alamofire.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 140B74AB1FB1367A00FCDEF6 /* Alamofire.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		140B74B01FB1367A00FCDEF6 /* Networking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 140B74AC1FB1367A00FCDEF6 /* Networking.framework */; };
 		140B74B11FB1367A00FCDEF6 /* Networking.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 140B74AC1FB1367A00FCDEF6 /* Networking.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		140B74B21FB1367A00FCDEF6 /* Sync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 140B74AD1FB1367A00FCDEF6 /* Sync.framework */; };
-		140B74B31FB1367A00FCDEF6 /* Sync.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 140B74AD1FB1367A00FCDEF6 /* Sync.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		140B74B51FB138E900FCDEF6 /* users.json in Resources */ = {isa = PBXBuildFile; fileRef = 140B74B41FB138E900FCDEF6 /* users.json */; };
 		14425E591C97078A00F0FAD1 /* Fetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14425E501C97078A00F0FAD1 /* Fetcher.swift */; };
 		146E27A91BCD51F200959BBA /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 146E279F1BCD51F200959BBA /* LaunchScreen.xib */; };
@@ -31,7 +29,6 @@
 			files = (
 				140B74B11FB1367A00FCDEF6 /* Networking.framework in Embed Frameworks */,
 				140B74AF1FB1367A00FCDEF6 /* Alamofire.framework in Embed Frameworks */,
-				140B74B31FB1367A00FCDEF6 /* Sync.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -41,7 +38,6 @@
 /* Begin PBXFileReference section */
 		140B74AB1FB1367A00FCDEF6 /* Alamofire.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Alamofire.framework; path = Carthage/Build/iOS/Alamofire.framework; sourceTree = "<group>"; };
 		140B74AC1FB1367A00FCDEF6 /* Networking.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Networking.framework; path = Carthage/Build/iOS/Networking.framework; sourceTree = "<group>"; };
-		140B74AD1FB1367A00FCDEF6 /* Sync.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Sync.framework; path = Carthage/Build/iOS/Sync.framework; sourceTree = "<group>"; };
 		140B74B41FB138E900FCDEF6 /* users.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = users.json; sourceTree = "<group>"; };
 		14425E501C97078A00F0FAD1 /* Fetcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fetcher.swift; sourceTree = "<group>"; };
 		146E27891BCD51C800959BBA /* iOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -49,6 +45,7 @@
 		146E27A11BCD51F200959BBA /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		146E27A21BCD51F200959BBA /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		14CB87E51C96F94F007376A6 /* DataModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = DataModel.xcdatamodel; sourceTree = "<group>"; };
+		2F3C1FFE2C2AE030009885A0 /* Sync */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = Sync; path = ..; sourceTree = "<group>"; };
 		44AE9F5A1EB113D200D6B40C /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		44AE9F5B1EB113D200D6B40C /* ItemsController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemsController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -60,7 +57,6 @@
 			files = (
 				140B74B01FB1367A00FCDEF6 /* Networking.framework in Frameworks */,
 				140B74AE1FB1367A00FCDEF6 /* Alamofire.framework in Frameworks */,
-				140B74B21FB1367A00FCDEF6 /* Sync.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,12 +112,12 @@
 		147A139B1B92B9E300E52F9C = {
 			isa = PBXGroup;
 			children = (
+				2F3C1FFE2C2AE030009885A0 /* Sync */,
 				141A6FD31BDE2DAB00CB6E82 /* Library */,
 				146E278A1BCD51C800959BBA /* iOS */,
 				147A13A51B92B9E300E52F9C /* Products */,
 				140B74AB1FB1367A00FCDEF6 /* Alamofire.framework */,
 				140B74AC1FB1367A00FCDEF6 /* Networking.framework */,
-				140B74AD1FB1367A00FCDEF6 /* Sync.framework */,
 			);
 			sourceTree = "<group>";
 		};
@@ -187,6 +183,7 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 				Base,
 			);
