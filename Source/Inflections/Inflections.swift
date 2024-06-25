@@ -85,44 +85,38 @@ public extension String {
         mutableLowercaseSet.formUnion(decimaldigitSet)
         let lowercaseSet = mutableLowercaseSet
         
-        var buffer: NSString? = ""
-        var stringBuffer: String = ""
         var output: String = ""
         
         while !(scanner.isAtEnd) {
-            let isExcludedCharacter = scanner.scanCharacters(from: identifierSet, into: &buffer)
-            if (isExcludedCharacter) { continue }
+            if let _ = scanner.scanCharacters(from: identifierSet) {
+                continue
+            }
             
             if (replacementString.count > 0) {
-                let isUppercaseCharacter = scanner.scanCharacters(from: uppercaseSet, into: &buffer)
-                stringBuffer = buffer! as String
-                if (isUppercaseCharacter) {
+                if var result = scanner.scanCharacters(from: uppercaseSet) {
                     for eachString in acronyms {
-                        let containsString = (stringBuffer.lowercased().range(of: eachString))
+                        let containsString = (result.lowercased().range(of: eachString))
                         if (containsString != nil) {
-                            if (stringBuffer.count == eachString.count) {
-                                stringBuffer = eachString
+                            if (result.count == eachString.count) {
+                                result = eachString
                             } else {
-                                stringBuffer = eachString + "_" + (stringBuffer.lowercased().replacingOccurrences(of: eachString, with: ""))
+                                result = eachString + "_" + (result.lowercased().replacingOccurrences(of: eachString, with: ""))
                             }
                             break
                         }
                     }
                     output.append(replacementString)
-                    output.append(stringBuffer.lowercased())
+                    output.append(result.lowercased())
                 }
                 
-                let isLowercasedCharacter = scanner.scanCharacters(from: lowercaseSet, into: &buffer)
-                stringBuffer = buffer! as String
-                if (isLowercasedCharacter) {
-                    output.append(stringBuffer.lowercased())
+                if let result = scanner.scanCharacters(from: lowercaseSet) {
+                    output.append(result.lowercased())
                 }
-            } else if (scanner.scanCharacters(from: alphanumerisSet, into: &buffer)) {
-                stringBuffer = buffer! as String
-                if (acronyms.contains(stringBuffer)) {
-                    output.append(stringBuffer.uppercased())
+            } else if let result = scanner.scanCharacters(from: alphanumerisSet) {
+                if acronyms.contains(result) {
+                    output.append(result.uppercased())
                 } else {
-                    output.append(stringBuffer.capitalized)
+                    output.append(result.capitalized)
                 }
             } else {
                 output = ""
