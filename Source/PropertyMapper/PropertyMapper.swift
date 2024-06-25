@@ -26,7 +26,7 @@ let PropertyMapperNestedAttributesKey = "attributes"
 
 public extension NSManagedObject {
     
-    func fill(with dictionary: Dictionary<String, Any?>) {
+    func fill(with dictionary: [String: Any?]) {
         self.hyp_fill(with: dictionary)
     }
     
@@ -36,7 +36,7 @@ public extension NSManagedObject {
      - parameters:
      - dictionary: The JSON dictionary to be used to fill the values of your @c NSManagedObject.
      */
-    func hyp_fill(with dictionary: Dictionary<String, Any?>) {
+    func hyp_fill(with dictionary: [String: Any?]) {
         for (key, value) in dictionary {
             let attributeDescription: NSAttributeDescription?  = self.attributeDescriptionForRemoteKey(key)
             if attributeDescription != nil {
@@ -93,7 +93,7 @@ public extension NSManagedObject {
      
      - returns: The JSON representation of the @c NSManagedObject in the form of a @c NSDictionary.
      */
-    func hyp_dictionary() -> Dictionary<String, Any?> {
+    func hyp_dictionary() -> [String: Any?] {
         return hyp_dictionary(using: .snakeCase)
     }
     
@@ -107,7 +107,7 @@ public extension NSManagedObject {
      
      - returns: The JSON representation of the @c NSManagedObject in the form of a @c NSDictionary.
      */
-    func hyp_dictionary(using inflectionType: SyncPropertyMapperInflectionType) -> Dictionary<String, Any?> {
+    func hyp_dictionary(using inflectionType: SyncPropertyMapperInflectionType) -> [String: Any?] {
         return hyp_dictionary(with: defaultDateFormatter(), parent: nil, using: inflectionType, andRelationshipType: .nested)
     }
     
@@ -121,7 +121,7 @@ public extension NSManagedObject {
      
      - returns: The JSON representation of the @c NSManagedObject in the form of a @c NSDictionary.
      */
-    func hyp_dictionary(_ relationshipType: SyncPropertyMapperRelationshipType) -> Dictionary<String, Any?> {
+    func hyp_dictionary(_ relationshipType: SyncPropertyMapperRelationshipType) -> [String: Any?] {
         return hyp_dictionary(with: defaultDateFormatter(), usingRelationshipType: relationshipType)
         
     }
@@ -137,7 +137,7 @@ public extension NSManagedObject {
      
      - returns: The JSON representation of the @c NSManagedObject in the form of a @c NSDictionary.
      */
-    func hyp_dictionary(using inflectionType: SyncPropertyMapperInflectionType, andRelationshipType relationshipType: SyncPropertyMapperRelationshipType) -> Dictionary<String, Any?> {
+    func hyp_dictionary(using inflectionType: SyncPropertyMapperInflectionType, andRelationshipType relationshipType: SyncPropertyMapperRelationshipType) -> [String: Any?] {
         return hyp_dictionary(with: defaultDateFormatter(), parent: nil, using: inflectionType, andRelationshipType: relationshipType)
     }
     
@@ -149,7 +149,7 @@ public extension NSManagedObject {
      
      - returns: The JSON representation of the @c NSManagedObject in the form of a @c NSDictionary.
      */
-    func hyp_dictionary(with dateFormatter: DateFormatter) -> Dictionary<String, Any?> {
+    func hyp_dictionary(with dateFormatter: DateFormatter) -> [String: Any?] {
         return hyp_dictionary(with: dateFormatter, usingRelationshipType: .nested)
     }
     
@@ -163,7 +163,7 @@ public extension NSManagedObject {
      
      - returns: The JSON representation of the @c NSManagedObject in the form of a @c NSDictionary.
      */
-    func hyp_dictionary(with dateformatter: DateFormatter, usingRelationshipType relationshipType:SyncPropertyMapperRelationshipType) -> Dictionary<String, Any?> {
+    func hyp_dictionary(with dateformatter: DateFormatter, usingRelationshipType relationshipType:SyncPropertyMapperRelationshipType) -> [String: Any?] {
         return hyp_dictionary(with: dateformatter, parent: nil, usingRelationshipType: relationshipType)
     }
     
@@ -177,7 +177,7 @@ public extension NSManagedObject {
      
      - returns The JSON representation of the @c NSManagedObject in the form of a @c NSDictionary.
      */
-    func hyp_dictionary(with dateFormatter: DateFormatter, using inflectionType: SyncPropertyMapperInflectionType) -> Dictionary<String, Any?> {
+    func hyp_dictionary(with dateFormatter: DateFormatter, using inflectionType: SyncPropertyMapperInflectionType) -> [String: Any?] {
         return hyp_dictionary(with: dateFormatter, parent: nil, using: inflectionType, andRelationshipType: .nested)
     }
     
@@ -192,7 +192,7 @@ public extension NSManagedObject {
      
      - returns The JSON representation of the @c NSManagedObject in the form of a @c NSDictionary.
      */
-    func hyp_dictionary(with dateFormatter: DateFormatter, using inflectionType: SyncPropertyMapperInflectionType, andRelationshipType relationshipType: SyncPropertyMapperRelationshipType) -> Dictionary<String, Any?> {
+    func hyp_dictionary(with dateFormatter: DateFormatter, using inflectionType: SyncPropertyMapperInflectionType, andRelationshipType relationshipType: SyncPropertyMapperRelationshipType) -> [String: Any?] {
         return hyp_dictionary(with: dateFormatter, parent: nil, using: inflectionType, andRelationshipType: relationshipType)
     }
     
@@ -208,13 +208,13 @@ public extension NSManagedObject {
      
      - returns: The JSON representation of the @c NSManagedObject in the form of a @c NSDictionary.
      */
-    func hyp_dictionary(with dateFormatter: DateFormatter, parent: NSManagedObject?, usingRelationshipType relationshipType: SyncPropertyMapperRelationshipType) -> Dictionary<String, Any?> {
+    func hyp_dictionary(with dateFormatter: DateFormatter, parent: NSManagedObject?, usingRelationshipType relationshipType: SyncPropertyMapperRelationshipType) -> [String: Any?] {
         return hyp_dictionary(with: dateFormatter, parent: parent, using: .snakeCase, andRelationshipType: relationshipType)
     }
     
-    func hyp_dictionary(with dateFormatter: DateFormatter, parent: NSManagedObject?, using inflectionType: SyncPropertyMapperInflectionType, andRelationshipType relationshipType: SyncPropertyMapperRelationshipType) -> Dictionary<String, Any?> {
+    func hyp_dictionary(with dateFormatter: DateFormatter, parent: NSManagedObject?, using inflectionType: SyncPropertyMapperInflectionType, andRelationshipType relationshipType: SyncPropertyMapperRelationshipType) -> [String: Any?] {
         
-        var managedObjectAttributes: Dictionary<String, Any?> = Dictionary()
+        var managedObjectAttributes: [String: Any?] = Dictionary()
         
         for rawPropertyDescription in self.entity.properties {
             if rawPropertyDescription is NSAttributeDescription {
@@ -271,7 +271,7 @@ public extension NSManagedObject {
                         if (relationships != nil) {
                             let isToOneRelationship = (!(relationships is NSSet) && !(relationships is NSOrderedSet))
                             if (isToOneRelationship) {
-                                let attributesForToOneRelationship : Dictionary<String, Any> = self.attributesForToOneRelationship(relationships as! NSManagedObject, relationshipName: relationshipName, usingRelationshipType: relationshipType, parent: self, dateFormatter: dateFormatter, inflectionType: inflectionType)
+                                let attributesForToOneRelationship : [String: Any] = self.attributesForToOneRelationship(relationships as! NSManagedObject, relationshipName: relationshipName, usingRelationshipType: relationshipType, parent: self, dateFormatter: dateFormatter, inflectionType: inflectionType)
                                 managedObjectAttributes.merge(attributesForToOneRelationship) { (_, second) in second }
                             } else {
                                 let attributesForToManyRelationship = self.attributesForToManyRelationship(relationships as Any, relationshipName: relationshipName, usingRelationshipType: relationshipType, parent: self, dateFormatter: dateFormatter, inflectionType: inflectionType)
@@ -288,8 +288,8 @@ public extension NSManagedObject {
     }
     
     
-    func attributesForToOneRelationship(_ relationship: NSManagedObject, relationshipName: String, usingRelationshipType relationshipType: SyncPropertyMapperRelationshipType, parent: NSManagedObject, dateFormatter: DateFormatter, inflectionType: SyncPropertyMapperInflectionType) -> Dictionary<String, Any>{
-        var attributesForToOneRelationship: Dictionary<String, Any> = Dictionary()
+    func attributesForToOneRelationship(_ relationship: NSManagedObject, relationshipName: String, usingRelationshipType relationshipType: SyncPropertyMapperRelationshipType, parent: NSManagedObject, dateFormatter: DateFormatter, inflectionType: SyncPropertyMapperInflectionType) -> [String: Any]{
+        var attributesForToOneRelationship: [String: Any] = Dictionary()
         let attributes = relationship.hyp_dictionary(with: dateFormatter, parent: parent, using: inflectionType, andRelationshipType: relationshipType)
         
         
@@ -322,12 +322,12 @@ public extension NSManagedObject {
                                          usingRelationshipType relationshipType: SyncPropertyMapperRelationshipType,
                                          parent: NSManagedObject,
                                          dateFormatter: DateFormatter,
-                                         inflectionType: SyncPropertyMapperInflectionType) -> Dictionary<String, Any> {
+                                         inflectionType: SyncPropertyMapperInflectionType) -> [String: Any] {
         
-        var attributesForToManyRelationship: Dictionary<String, Any> = Dictionary()
+        var attributesForToManyRelationship: [String: Any] = Dictionary()
         var relationIndex = 0
-        var relationsDictionary: Dictionary<String, Any> = Dictionary()
-        var relationsArray: Array<Dictionary<String, Any>> = Array()
+        var relationsDictionary: [String: Any] = Dictionary()
+        var relationsArray: Array<[String: Any]> = Array()
         var relationshipSet: Array<NSManagedObject>
         if (relationships is NSSet) {
             relationshipSet = (relationships as! NSSet).allObjects as! [NSManagedObject]

@@ -97,7 +97,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     // MARK: hyp_fillWithDictionary
     
     func testAllAttributes() {
-        let values : Dictionary<String, Any> = ["integer_string" : "16",
+        let values : [String: Any] = ["integer_string" : "16",
                                  "integer16" : 16,
                                  "integer32" : 32,
                                  "integer64" : 64,
@@ -166,7 +166,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     
     func testAllAttributesInCamelcase() {
-        let values : Dictionary<String, Any> = ["integerString" : "16",
+        let values : [String: Any] = ["integerString" : "16",
                                  "integer16" : 16,
                                  "integer32" : 32,
                                  "integer64" : 64,
@@ -233,7 +233,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     
     func testFillManagedObjectWithDictionary() {
-        let values: Dictionary<String, Any> = ["first_name" : "Jane", "last_name" : "Sid"]
+        let values: [String: Any] = ["first_name" : "Jane", "last_name" : "Sid"]
         let dataStack = dataStack
         let user = userUsingDataStack(dataStack)
         user.hyp_fill(with: values)
@@ -478,28 +478,28 @@ class SyncFillWithDictionaryTests : XCTestCase {
 extension NSKeyedArchiver  {
     
     class func unarchiveArray(from data: Data?) -> Array<Any?>? {
-        var array: [Any]? = nil
+        var array: NSArray? = nil
         do {
             if let data = data {
                // array = try NSKeyedUnarchiver.unarchivedObject(ofClass: Array.self, from: data)
-                array = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Array
+                array = try NSKeyedUnarchiver.unarchivedObject(ofClass: NSArray.self, from: data)
             }
         } catch let unarchivingError {
             print("NSKeyedUnarchiver (Sync) unarchivingError \(unarchivingError.localizedDescription)")
         }
-        return array
+        return array as? Array<Any?>
     }
 
-    class func unarchiveDictionary(from data: Data?) -> Dictionary<AnyHashable, Any>?  {
-        var dictionary: [AnyHashable : Any]? = nil
+    class func unarchiveDictionary(from data: Data?) -> [AnyHashable: Any]?  {
+        var dictionary: NSDictionary? = nil
         do {
             if let data = data {
-                dictionary = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Dictionary
+                dictionary = try NSKeyedUnarchiver.unarchivedObject(ofClass: NSDictionary.self, from: data)
             }
         } catch let unarchivingError {
             print("NSKeyedUnarchiver (Sync) unarchivingError \(unarchivingError.localizedDescription)")
         }
-        return dictionary
+        return dictionary as? [AnyHashable : Any]
     }
     
 }

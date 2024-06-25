@@ -104,14 +104,14 @@ class SyncDictionaryTests : XCTestCase {
     
     // MARK: hyp_dictionary
     
-    func userDictionaryWithNoRelationships() -> Dictionary<String, Any?> {
+    func userDictionaryWithNoRelationships() -> [String: Any?] {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZZZZZ"
         // formatter.setLocalizedDateFormatFromTemplate("yyyy-MM-dd'T'HH:mm:ssZZZZZ")
         let resultDateString = formatter.string(from: self.testDate)
         
-        var comparedDictionary: Dictionary<String, Any> = Dictionary()
+        var comparedDictionary: [String: Any] = Dictionary()
         comparedDictionary["age_of_person"] = 25
         comparedDictionary["birth_date"] = resultDateString
         comparedDictionary["contract_id"] = 235
@@ -173,7 +173,7 @@ class SyncDictionaryTests : XCTestCase {
                                         "name" : "Facebook"]
         
 
-        let notes : Array<Dictionary<String, Any>> = dictionary["notes"] as! Array<Dictionary<String, Any>>
+        let notes : Array<[String: Any]> = dictionary["notes"] as! Array<[String: Any]>
         let nameDescriptor = NSSortDescriptor(key: "id", ascending: true)
         let sortedNotes = (notes as NSArray).sortedArray(using: [nameDescriptor])
 
@@ -253,7 +253,7 @@ class SyncDictionaryTests : XCTestCase {
         var comparedDictionary = userDictionaryWithNoRelationships()
         
         
-        let notes : Array<Dictionary<String, Any>> = dictionary["notes"] as! Array<Dictionary<String, Any>>
+        let notes : Array<[String: Any]> = dictionary["notes"] as! Array<[String: Any]>
         let nameDescriptor = NSSortDescriptor(key: "id", ascending: true)
         let sortedNotes = (notes as NSArray).sortedArray(using: [nameDescriptor])
         
@@ -313,10 +313,10 @@ class SyncDictionaryTests : XCTestCase {
         building.setValue(apartments, forKey: "apartments")
         
         let buildingDictionary = building.hyp_dictionary(.array)
-        var compared: Dictionary<String, Any> = Dictionary()
-        let roomsArray: Array<Dictionary<String, Any?>> = [["id" : 1]]
-        let apartmentsArray: Array<Dictionary<String, Any?>> = [["id" : 1, "rooms" : roomsArray]]
-        let parksArray: Array<Dictionary<String, Any?>> = [["id" : 1]]
+        var compared: [String: Any] = Dictionary()
+        let roomsArray: Array<[String: Any?]> = [["id" : 1]]
+        let apartmentsArray: Array<[String: Any?]> = [["id" : 1, "rooms" : roomsArray]]
+        let parksArray: Array<[String: Any?]> = [["id" : 1]]
         compared["id"] = 1;
         compared["apartments"] = apartmentsArray;
         compared["parks"] = parksArray;
@@ -395,7 +395,7 @@ class SyncDictionaryTests : XCTestCase {
         parent.setValue(recursives, forKey: "recursives")
         child.setValue(parent, forKey: "recursive")
         
-        let dictionary: Dictionary<String, Any?> = parent.hyp_dictionary(.array)
+        let dictionary: [String: Any?] = parent.hyp_dictionary(.array)
         let megachildArray = [["id" : "megachild", "recursives" : []]]
         let grandchildArray = [["id" : "grandchild", "recursives" : megachildArray]]
         let childArray = [["id" : "child", "recursives" : grandchildArray]]

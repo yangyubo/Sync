@@ -7,8 +7,8 @@
 
 import Foundation
 
-var snakeCaseStorage: Dictionary<String, String> = Dictionary()
-var camelCaseStorage: Dictionary<String, String> = Dictionary()
+var snakeCaseStorage: [String: String] = Dictionary()
+var camelCaseStorage: [String: String] = Dictionary()
 let acronyms: Array = ["uuid", "id", "pdf", "url", "png", "jpg", "uri", "json", "xml"]
 
 
