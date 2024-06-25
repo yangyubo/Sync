@@ -16,9 +16,9 @@ public class JSON {
         var JSON: Any?
         let bundle: Bundle = Bundle.module
 
-        guard let url = URL(string: fileName), let filePath = bundle.path(forResource: url.deletingPathExtension().absoluteString, ofType: url.pathExtension) else { throw ParsingError.notFound }
+        guard let url = URL(string: fileName), let fileURL = bundle.url(forResource: url.deletingPathExtension().absoluteString, withExtension: url.pathExtension) else { throw ParsingError.notFound }
 
-        guard let data = try? Data(contentsOf: URL(fileURLWithPath: filePath)) else { throw ParsingError.failed }
+        guard let data = try? Data(contentsOf: fileURL) else { throw ParsingError.failed }
 
         JSON = try data.toJSON()
 

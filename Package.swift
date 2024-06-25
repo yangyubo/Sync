@@ -27,7 +27,8 @@ let package = Package(
         .target(
             name: "Sync",
             dependencies: [],
-        path: "Source"),
+            path: "Source"
+        ),
         .testTarget(
             name: "SyncTests",
             dependencies: ["Sync"],
