@@ -8,7 +8,7 @@ class NSPersistentContainerTests: XCTestCase {
         if #available(iOS 10, *) {
             let expectation = self.expectation(description: "testSkipTestMode")
 
-            let momdModelURL = Bundle(for: NSPersistentContainerTests.self).url(forResource: "Camelcase", withExtension: "momd")!
+            let momdModelURL = Bundle.module.url(forResource: "Camelcase", withExtension: "momd")!
             let model = NSManagedObjectModel(contentsOf: momdModelURL)!
             let persistentContainer = NSPersistentContainer(name: "Camelcase", managedObjectModel: model)
             try! persistentContainer.persistentStoreCoordinator.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil, options: nil)

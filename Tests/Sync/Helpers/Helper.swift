@@ -4,21 +4,21 @@ import Sync
 
 @objc class Helper: NSObject {
     class func objectsFromJSON(_ fileName: String) -> Any {
-        let bundle = Bundle(for: Helper.self)
+        let bundle = Bundle.module
         let objects = try! JSON.from(fileName, bundle: bundle)!
 
         return objects
     }
 
     class func dataStackWithModelName(_ modelName: String) -> DataStack {
-        let bundle = Bundle(for: Helper.self)
+        let bundle = Bundle.module
         let dataStack = DataStack(modelName: modelName, bundle: bundle, storeType: .sqLite)
 
         return dataStack
     }
 
     class func persistentStoreWithModelName(_ modelName: String) -> NSPersistentContainer {
-        let momdModelURL = Bundle(for: NSPersistentContainerTests.self).url(forResource: modelName, withExtension: "momd")!
+        let momdModelURL = Bundle.module.url(forResource: modelName, withExtension: "momd")!
         let model = NSManagedObjectModel(contentsOf: momdModelURL)!
         let persistentContainer = NSPersistentContainer(name: modelName, managedObjectModel: model)
         try! persistentContainer.persistentStoreCoordinator.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil, options: nil)
@@ -60,7 +60,7 @@ import Sync
     }
 
     class func dataStackWithModelName(_ modelName: String, storeType: DataStackStoreType = .sqLite) -> DataStack {
-        let bundle = Bundle(for: Helper.self)
+        let bundle = Bundle.module
         let dataStack = DataStack(modelName: modelName, bundle: bundle, storeType: storeType)
         return dataStack
     }
