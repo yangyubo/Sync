@@ -58,7 +58,7 @@ public extension NSManagedObjectContext {
                     }
                 }
             } catch let error as NSError {
-                print("error: \(error)")
+                debugPrint("error: \(error)")
             }
         }
 

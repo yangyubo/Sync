@@ -130,7 +130,7 @@ public protocol SyncDelegate: AnyObject {
                 return self.delegate?.sync(self, willInsert: objectJSON, in: self.entityName, parent: self.parent) ?? objectJSON
             })
         } catch let error as NSError {
-            print("Failed syncing changes \(error)")
+            debugPrint("Failed syncing changes \(error)")
         }
 
         self.updateExecuting(false)
