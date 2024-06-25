@@ -7,7 +7,7 @@ class NSManagedObjectContext_SyncTests: XCTestCase {
     }
 
     func configureUserWithRemoteID(remoteID: NSNumber?, localID: String?, name: String, block: @escaping (_ user: NSManagedObject, _ context: NSManagedObjectContext) -> Void) {
-        let stack = DataStack(modelName: "Tests", bundle: Bundle.module, storeType: .inMemory)
+        let stack = DataStack(modelName: "Tests", inMemory: true)
         stack.performInNewBackgroundContext { context in
             let user = NSEntityDescription.insertNewObject(forEntityName: "User", into: context)
             user.setValue(remoteID, forKey: "remoteID")

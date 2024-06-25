@@ -4,16 +4,13 @@ import Sync
 
 @objc class Helper: NSObject {
     class func objectsFromJSON(_ fileName: String) -> Any {
-        let bundle = Bundle.module
-        let objects = try! JSON.from(fileName, bundle: bundle)!
+        let objects = try! JSON.from(fileName)!
 
         return objects
     }
 
     class func dataStackWithModelName(_ modelName: String) -> DataStack {
-        let bundle = Bundle.module
-        let dataStack = DataStack(modelName: modelName, bundle: bundle, storeType: .sqLite)
-
+        let dataStack = DataStack(modelName: modelName, inMemory: false)
         return dataStack
     }
 
@@ -59,9 +56,8 @@ import Sync
         return objects
     }
 
-    class func dataStackWithModelName(_ modelName: String, storeType: DataStackStoreType = .sqLite) -> DataStack {
-        let bundle = Bundle.module
-        let dataStack = DataStack(modelName: modelName, bundle: bundle, storeType: storeType)
+    class func dataStackWithModelName(_ modelName: String, inMemory: Bool = false) -> DataStack {
+        let dataStack = DataStack(modelName: modelName, inMemory: inMemory)
         return dataStack
     }
 
@@ -71,3 +67,64 @@ import Sync
     }
 
 }
+
+extension DataStack {
+    
+    convenience init(modelName: String, inMemory: Bool, storeName: String? = nil) {
+        let modelURL = Bundle.module.url(forResource: modelName, withExtension: "momd")!
+        guard let model = NSManagedObjectModel(contentsOf: modelURL) else {
+            fatalError("Can't get \(modelName).momd in Bundle")
+        }
+        
+        let container = NSPersistentContainer(name: "CoreSSH", managedObjectModel: model)
+        container.testSetup(inMemory: inMemory, storeName: storeName)
+        self.init(persistentContainer: container)
+    }
+    
+}
+
+
+private extension NSPersistentContainer {
+    
+    func testSetup(inMemory: Bool, storeName: String?) {
+        if inMemory {
+            self.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+        } else if let storeName = storeName {
+            let storeFileName = storeName + ".sqlite"
+            let storeURL = FileManager.sqliteDirectoryURL.appendingPathComponent(storeFileName)
+            self.persistentStoreDescriptions = [NSPersistentStoreDescription(url: storeURL)]
+        }
+        
+        // enable Persistent History Tracking
+        self.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+        self.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+        
+        self.loadPersistentStores { storeDescription, error in
+            if let error = error as NSError? {
+                fatalError("Failed to load persistent stores: \(error)")
+            }
+        }
+        
+        // Merge settings
+        self.viewContext.automaticallyMergesChangesFromParent = true
+        self.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        
+        // TODO: remove in future release
+        // https://mjtsai.com/blog/2023/08/15/turning-off-core-data-persistent-history-tracking/
+//        if !iCloudSync, !CorePreferences.shared._syncKeepPersistentHistory {
+//            let request = NSPersistentHistoryChangeRequest.deleteHistory(before: .distantFuture)
+//            self.viewContext.perform {
+//                _ = try? self.viewContext.execute(request)
+//                CorePreferences.shared._syncKeepPersistentHistory = true
+//            }
+//        }
+        
+        do {
+            try self.viewContext.setQueryGenerationFrom(.current)
+        } catch {
+            fatalError("Failed to pin viewContext to the current generation:\(error)")
+        }
+    }
+    
+}
+

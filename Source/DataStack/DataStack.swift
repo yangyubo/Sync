@@ -14,22 +14,15 @@ public enum DataStackStoreType: Int {
     }
 }
 
-public class DataStack: NSObject {
-    private var storeType = DataStackStoreType.sqLite
+public class DataStack {
 
-    private var storeName: String?
+    public var model: NSManagedObjectModel {
+        return persistentContainer.managedObjectModel
+    }
 
-    private var modelName = ""
-
-    private var modelBundle = Bundle.main
-
-    public var model: NSManagedObjectModel
-
-    private var containerURL = FileManager.sqliteDirectoryURL
-
+    private let persistentContainer: NSPersistentContainer
+    
     private let backgroundContextName = "DataStack.backgroundContextName"
-
-    private let disposableContextName = "DataStack.disposableContextName"
 
     /**
      The context for the main queue. Please do not use this to mutate data, use `performInNewBackgroundContext`
@@ -63,159 +56,21 @@ public class DataStack: NSObject {
         return context
     }()
 
-    public private(set) lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator = {
-        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: self.model)
-        try! persistentStoreCoordinator.addPersistentStore(storeType: self.storeType, bundle: self.modelBundle, modelName: self.modelName, storeName: self.storeName, containerURL: self.containerURL)
-
-        return persistentStoreCoordinator
-    }()
-
-    private lazy var disposablePersistentStoreCoordinator: NSPersistentStoreCoordinator = {
-        let model = NSManagedObjectModel(bundle: self.modelBundle, name: self.modelName)
-        let persistentStoreCoordinator = NSPersistentStoreCoordinator(managedObjectModel: model)
-        try! persistentStoreCoordinator.addPersistentStore(storeType: .inMemory, bundle: self.modelBundle, modelName: self.modelName, storeName: self.storeName, containerURL: self.containerURL)
-
-        return persistentStoreCoordinator
-    }()
-
-    /**
-     Initializes a DataStack using the bundle name as the model name, so if your target is called ModernApp,
-     it will look for a ModernApp.xcdatamodeld.
-     */
-    public override init() {
-        let bundle = Bundle.main
-        if let bundleName = bundle.infoDictionary?["CFBundleName"] as? String {
-            self.modelName = bundleName
-        }
-        self.model = NSManagedObjectModel(bundle: self.modelBundle, name: self.modelName)
-
-        super.init()
+    public var persistentStoreCoordinator: NSPersistentStoreCoordinator {
+        persistentContainer.persistentStoreCoordinator
     }
 
     /**
-     Initializes a DataStack using the provided model name.
+     Initializes a DataStack using the provided persistent container.
      - parameter modelName: The name of your Core Data model (xcdatamodeld).
      */
-    public init(modelName: String) {
-        self.modelName = modelName
-        self.model = NSManagedObjectModel(bundle: self.modelBundle, name: self.modelName)
-
-        super.init()
-    }
-
-    /**
-     Initializes a DataStack using the provided model name, bundle and storeType.
-     - parameter modelName: The name of your Core Data model (xcdatamodeld).
-     - parameter storeType: The store type to be used, you have .InMemory and .SQLite, the first one is memory
-     based and doesn't save to disk, while the second one creates a .sqlite file and stores things there.
-     */
-    public init(modelName: String, storeType: DataStackStoreType) {
-        self.modelName = modelName
-        self.storeType = storeType
-        self.model = NSManagedObjectModel(bundle: self.modelBundle, name: self.modelName)
-
-        super.init()
-    }
-
-    /**
-     Initializes a DataStack using the provided model name, bundle and storeType.
-     - parameter modelName: The name of your Core Data model (xcdatamodeld).
-     - parameter bundle: The bundle where your Core Data model is located, normally your Core Data model is in
-     the main bundle but when using unit tests sometimes your Core Data model could be located where your tests
-     are located.
-     - parameter storeType: The store type to be used, you have .InMemory and .SQLite, the first one is memory
-     based and doesn't save to disk, while the second one creates a .sqlite file and stores things there.
-     */
-    public init(modelName: String, bundle: Bundle, storeType: DataStackStoreType) {
-        self.modelName = modelName
-        self.modelBundle = bundle
-        self.storeType = storeType
-        self.model = NSManagedObjectModel(bundle: self.modelBundle, name: self.modelName)
-
-        super.init()
-    }
-
-    /**
-     Initializes a DataStack using the provided model name, bundle, storeType and store name.
-     - parameter modelName: The name of your Core Data model (xcdatamodeld).
-     - parameter bundle: The bundle where your Core Data model is located, normally your Core Data model is in
-     the main bundle but when using unit tests sometimes your Core Data model could be located where your tests
-     are located.
-     - parameter storeType: The store type to be used, you have .InMemory and .SQLite, the first one is memory
-     based and doesn't save to disk, while the second one creates a .sqlite file and stores things there.
-     - parameter storeName: Normally your file would be named as your model name is named, so if your model
-     name is AwesomeApp then the .sqlite file will be named AwesomeApp.sqlite, this attribute allows your to
-     change that.
-     */
-    public init(modelName: String, bundle: Bundle, storeType: DataStackStoreType, storeName: String) {
-        self.modelName = modelName
-        self.modelBundle = bundle
-        self.storeType = storeType
-        self.storeName = storeName
-        self.model = NSManagedObjectModel(bundle: self.modelBundle, name: self.modelName)
-
-        super.init()
-    }
-
-    /**
-     Initializes a DataStack using the provided model name, bundle, storeType and store name.
-     - parameter modelName: The name of your Core Data model (xcdatamodeld).
-     - parameter bundle: The bundle where your Core Data model is located, normally your Core Data model is in
-     the main bundle but when using unit tests sometimes your Core Data model could be located where your tests
-     are located.
-     - parameter storeType: The store type to be used, you have .InMemory and .SQLite, the first one is memory
-     based and doesn't save to disk, while the second one creates a .sqlite file and stores things there.
-     - parameter storeName: Normally your file would be named as your model name is named, so if your model
-     name is AwesomeApp then the .sqlite file will be named AwesomeApp.sqlite, this attribute allows your to
-     change that.
-     - parameter containerURL: The container URL for the sqlite file when a store type of SQLite is used.
-     */
-    public init(modelName: String, bundle: Bundle, storeType: DataStackStoreType, storeName: String, containerURL: URL) {
-        self.modelName = modelName
-        self.modelBundle = bundle
-        self.storeType = storeType
-        self.storeName = storeName
-        self.containerURL = containerURL
-        self.model = NSManagedObjectModel(bundle: self.modelBundle, name: self.modelName)
-
-        super.init()
-    }
-
-    /**
-     Initializes a DataStack using the provided model name, bundle and storeType.
-     - parameter model: The model that we'll use to set up your DataStack.
-     - parameter storeType: The store type to be used, you have .InMemory and .SQLite, the first one is memory
-     based and doesn't save to disk, while the second one creates a .sqlite file and stores things there.
-     */
-    public init(model: NSManagedObjectModel, storeType: DataStackStoreType) {
-        self.model = model
-        self.storeType = storeType
-
-        let bundle = Bundle.main
-        if let bundleName = bundle.infoDictionary?["CFBundleName"] as? String {
-            self.storeName = bundleName
-        }
-
-        super.init()
+    public init(persistentContainer: NSPersistentContainer) {
+        self.persistentContainer = persistentContainer
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self, name: .NSManagedObjectContextWillSave, object: nil)
         NotificationCenter.default.removeObserver(self, name: .NSManagedObjectContextDidSave, object: nil)
-    }
-
-    /**
-     Returns a new main context that is detached from saving to disk.
-     */
-    public func newDisposableMainContext() -> NSManagedObjectContext {
-        let context = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
-        context.name = disposableContextName
-        context.persistentStoreCoordinator = self.disposablePersistentStoreCoordinator
-        context.undoManager = nil
-
-        NotificationCenter.default.addObserver(self, selector: #selector(DataStack.newDisposableMainContextWillSave(_:)), name: NSNotification.Name.NSManagedObjectContextWillSave, object: context)
-
-        return context
     }
 
     /**
@@ -371,16 +226,6 @@ public class DataStack: NSObject {
     }
 
     // Can't be private, has to be internal in order to be used as a selector.
-    @objc func newDisposableMainContextWillSave(_ notification: Notification) {
-        let context = notification.object as? NSManagedObjectContext
-        guard context?.name == disposableContextName else {
-            return
-        }
-
-        context?.reset()
-    }
-
-    // Can't be private, has to be internal in order to be used as a selector.
     @objc func backgroundContextDidSave(_ notification: Notification) throws {
         let context = notification.object as? NSManagedObjectContext
         guard context?.name == backgroundContextName else {
@@ -404,65 +249,6 @@ public class DataStack: NSObject {
 
     private static func performSelectorForBackgroundContext() -> Selector {
         return TestCheck.isTesting ? NSSelectorFromString("performBlockAndWait:") : NSSelectorFromString("performBlock:")
-    }
-}
-
-extension NSPersistentStoreCoordinator {
-    func addPersistentStore(storeType: DataStackStoreType, bundle: Bundle, modelName: String, storeName: String?, containerURL: URL) throws {
-        let filePath = (storeName ?? modelName) + ".sqlite"
-        switch storeType {
-        case .inMemory:
-            do {
-                try self.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil, options: nil)
-            } catch let error as NSError {
-                throw NSError(info: "There was an error creating the persistentStoreCoordinator for in memory store", previousError: error)
-            }
-
-            break
-        case .sqLite:
-            let storeURL = containerURL.appendingPathComponent(filePath)
-            let storePath = storeURL.path
-
-            let shouldPreloadDatabase = !FileManager.default.fileExists(atPath: storePath)
-            if shouldPreloadDatabase {
-                if let preloadedPath = bundle.path(forResource: modelName, ofType: "sqlite") {
-                    let preloadURL = URL(fileURLWithPath: preloadedPath)
-
-                    do {
-                        try FileManager.default.copyItem(at: preloadURL, to: storeURL)
-                    } catch let error as NSError {
-                        throw NSError(info: "Oops, could not copy preloaded data", previousError: error)
-                    }
-                }
-            }
-
-            let options = [NSMigratePersistentStoresAutomaticallyOption: true, NSInferMappingModelAutomaticallyOption: true, NSSQLitePragmasOption: ["journal_mode": "DELETE"]] as [AnyHashable: Any]
-            do {
-                try self.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: storeURL, options: options)
-            } catch {
-                do {
-                    try FileManager.default.removeItem(atPath: storePath)
-                    do {
-                        try self.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: storeURL, options: options)
-                    } catch let addPersistentError as NSError {
-                        throw NSError(info: "There was an error creating the persistentStoreCoordinator", previousError: addPersistentError)
-                    }
-                } catch let removingError as NSError {
-                    throw NSError(info: "There was an error removing the persistentStoreCoordinator", previousError: removingError)
-                }
-            }
-
-            let shouldExcludeSQLiteFromBackup = storeType == .sqLite && TestCheck.isTesting == false
-            if shouldExcludeSQLiteFromBackup {
-                do {
-                    try (storeURL as NSURL).setResourceValue(true, forKey: .isExcludedFromBackupKey)
-                } catch let excludingError as NSError {
-                    throw NSError(info: "Excluding SQLite file from backup caused an error", previousError: excludingError)
-                }
-            }
-
-            break
-        }
     }
 }
 
