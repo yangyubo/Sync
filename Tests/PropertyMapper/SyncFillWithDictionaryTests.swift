@@ -15,15 +15,15 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     let testDate = Date()
     
-    let dataStack = Helper.dataStackWithModelName("Model")
+    let container = NSPersistentContainer(modelName: "Model")
     
     
     func entityNamed(_ entityName: String, inContext context: NSManagedObjectContext) -> Any? {
         return NSEntityDescription.insertNewObject(forEntityName: entityName, into: context)
     }
     
-    func userUsingDataStack(_ dataStack: DataStack) -> NSManagedObject {
-        let user = entityNamed("User", inContext: dataStack.mainContext) as! NSManagedObject
+    func userUsingContainer(_ container: NSPersistentContainer) -> NSManagedObject {
+        let user = entityNamed("User", inContext: container.viewContext) as! NSManagedObject
         user.setValue(25, forKey: "age")
         user.setValue(self.testDate, forKey: "birthDate")
         user.setValue(235, forKey:"contractID")
@@ -60,17 +60,17 @@ class SyncFillWithDictionaryTests : XCTestCase {
             assertionFailure("NSKeyedArchiver expenses failed", file: "SyncDictionaryTests", line: 57)
         }
         
-        var note  = self.noteWithID(1, inContext: self.dataStack.mainContext)
+        var note  = self.noteWithID(1, inContext: self.container.viewContext)
         note.setValue(user, forKey: "user")
         
-        note = self.noteWithID(14, inContext: self.dataStack.mainContext)
+        note = self.noteWithID(14, inContext: self.container.viewContext)
         note.setValue(user, forKey: "user")
         note.setValue(true, forKey: "destroy")
         
-        note = self.noteWithID(7, inContext: self.dataStack.mainContext)
+        note = self.noteWithID(7, inContext: self.container.viewContext)
         note.setValue(user, forKey: "user")
         
-        let company: NSManagedObject = self.companyWithID(1, andName: "Facebook", inContext: self.dataStack.mainContext)
+        let company: NSManagedObject = self.companyWithID(1, andName: "Facebook", inContext: self.container.viewContext)
         company.setValue(user, forKey: "user")
         
         return user
@@ -119,8 +119,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
         
         ValueTransformer.setValueTransformer(SyncTestValueTransformer(), forName: NSValueTransformerName("SyncTestValueTransformer"))
         
-        let dataStack = dataStack
-        let attributes = entityNamed("Attribute", inContext: dataStack.mainContext) as! NSManagedObject
+        let attributes = entityNamed("Attribute", inContext: container.viewContext) as! NSManagedObject
         attributes.hyp_fill(with: values)
         
         
@@ -188,8 +187,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
         ValueTransformer.setValueTransformer(SyncTestValueTransformer(), forName: NSValueTransformerName("SyncTestValueTransformer"))
 
         
-        let dataStack = dataStack
-        let attributes = entityNamed("Attribute", inContext: dataStack.mainContext) as! NSManagedObject
+        let attributes = entityNamed("Attribute", inContext: container.viewContext) as! NSManagedObject
         attributes.hyp_fill(with: values)
         
         XCTAssertEqual(attributes.value(forKey: "integerString") as? Int, 16)
@@ -234,8 +232,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testFillManagedObjectWithDictionary() {
         let values: [String: Any] = ["first_name" : "Jane", "last_name" : "Sid"]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         XCTAssertEqual(user.value(forKey: "firstName") as! String, values["first_name"] as! String)
@@ -243,8 +240,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
              
     func testUpdateExistingValueWithNull() {
         let values = ["first_name" : "Jane", "last_name" : "Sid"]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         let updatedValues = ["first_name" : nil, "last_name" : "Sid"]
@@ -256,8 +252,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     func testAgeNumber() {
         let values = ["age" : 24]
         
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         XCTAssertEqual(user.value(forKey: "age") as? Int, values["age"]!)
@@ -265,8 +260,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testAgeString() {
         let values = ["age" : "24"]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         let formatter = NumberFormatter()
@@ -279,9 +273,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testBornDate() {
         let values = ["birth_date" : "1989-02-14T00:00:00+00:00"]
-        
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         let dateFormatter = DateFormatter()
@@ -294,9 +286,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testUpdate() {
         let values = ["first_name" : "Jane", "last_name" : "Sid", "age" : 30] as [String : Any]
-        
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         
         user.hyp_fill(with: values)
         
@@ -309,9 +299,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testUpdateIgnoringEqualValues() {
         let values = ["first_name" : "Jane", "last_name" : "Sid", "age" : 30] as [String : Any]
-        
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         
         user.hyp_fill(with: values)
         
@@ -330,8 +318,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testAcronyms() {
         let values = ["contract_id" : 100]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         
         user.hyp_fill(with: values)
         
@@ -341,8 +328,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testArrayStorage() {
         let values = ["hobbies" : ["football", "soccer", "code"]]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         
         user.hyp_fill(with: values)
         
@@ -354,8 +340,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testDictionaryStorage() {
         let values = ["expenses" : ["cake" : 12.50, "juice" : 0.50]]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         
         user.hyp_fill(with: values)
         
@@ -367,8 +352,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testReservedWords() {
         let values = ["id" : 100, "description" : "This is the description", "type" : "user type"] as [String : Any]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         XCTAssertEqual(user.value(forKey: "remoteID") as? Int, 100)
@@ -380,9 +364,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
         let values = ["created_at" : "2014-01-01T00:00:00+00:00",
                       "updated_at" : "2014-01-02",
                       "number_of_attendes" : 20] as [String : Any]
-        
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         let dateFormat = DateFormatter()
@@ -398,8 +380,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testCustomRemoteKeys() {
         let values = ["age_of_person" : 20, "driver_identifier_str" : "123", "signed" : "salesman"] as [String : Any]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         XCTAssertEqual(user.value(forKey: "age") as? Int, 20)
@@ -409,8 +390,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testIgnoredTranformables() {
         let values = ["ignoreTransformable" : "I'm going to be ignored"]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         XCTAssertEqual(user.value(forKey: "ignoreTransformable") as? String, nil)
@@ -420,8 +400,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
         DateStringTransformer.register()
         
         let values = ["registeredTransformable" : "/Date(1451606400000)/"]
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         user.hyp_fill(with: values)
         
         let dateFormat = DateFormatter()
@@ -436,8 +415,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testCustomKey() {
         let values = ["id" : "1", "other_attribute" : "Market 1"]
-        let dataStack = dataStack
-        let market: NSManagedObject = self.entityNamed("Market", inContext: dataStack.mainContext) as! NSManagedObject
+        let market: NSManagedObject = self.entityNamed("Market", inContext: container.viewContext) as! NSManagedObject
         market.hyp_fill(with: values)
         
         XCTAssertEqual(market.value(forKey: "uniqueId") as? String, "1")
@@ -449,8 +427,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
                         ["value_one" : "Value 1",
                          "depth_one" : [ "depth_two" : "Value 2"]
                         ]]
-        let dataStack = dataStack
-        let keyPaths: NSManagedObject = self.entityNamed("KeyPath", inContext: dataStack.mainContext) as! NSManagedObject
+        let keyPaths: NSManagedObject = self.entityNamed("KeyPath", inContext: container.viewContext) as! NSManagedObject
         keyPaths.hyp_fill(with: values)
         
         XCTAssertEqual(keyPaths.value(forKey: "snakeCaseDepthOne") as? String, "Value 1")
@@ -460,8 +437,7 @@ class SyncFillWithDictionaryTests : XCTestCase {
     
     func testCustomKeyPathCamelCase() {
         let values = ["camelParent" : ["valueOne" : "Value 1", "depthOne" : ["depthTwo" : "Value 2"]]]
-        let dataStack = dataStack
-        let keyPaths: NSManagedObject = self.entityNamed("KeyPath", inContext: dataStack.mainContext) as! NSManagedObject
+        let keyPaths: NSManagedObject = self.entityNamed("KeyPath", inContext: container.viewContext) as! NSManagedObject
         
         keyPaths.hyp_fill(with: values)
         

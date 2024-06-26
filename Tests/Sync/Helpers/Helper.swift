@@ -9,20 +9,6 @@ import Sync
         return objects
     }
 
-    class func dataStackWithModelName(_ modelName: String) -> DataStack {
-        let dataStack = DataStack(modelName: modelName, inMemory: false)
-        return dataStack
-    }
-
-    class func persistentStoreWithModelName(_ modelName: String) -> NSPersistentContainer {
-        let momdModelURL = Bundle.module.url(forResource: modelName, withExtension: "momd")!
-        let model = NSManagedObjectModel(contentsOf: momdModelURL)!
-        let persistentContainer = NSPersistentContainer(name: modelName, managedObjectModel: model)
-        try! persistentContainer.persistentStoreCoordinator.addPersistentStore(ofType: NSInMemoryStoreType, configurationName: nil, at: nil, options: nil)
-
-        return persistentContainer
-    }
-
     class func countForEntity(_ entityName: String, inContext context: NSManagedObjectContext) -> Int {
         return self.countForEntity(entityName, predicate: nil, inContext: context)
     }
@@ -56,42 +42,41 @@ import Sync
         return objects
     }
 
-    class func dataStackWithModelName(_ modelName: String, inMemory: Bool = false) -> DataStack {
-        let dataStack = DataStack(modelName: modelName, inMemory: inMemory)
-        return dataStack
-    }
-
-    class func insertEntity(_ name: String, dataStack: DataStack) -> NSManagedObject {
-        let entity = NSEntityDescription.entity(forEntityName: name, in: dataStack.mainContext)!
-        return NSManagedObject(entity: entity, insertInto: dataStack.mainContext)
+    class func insertEntity(_ name: String, container: NSPersistentContainer) -> NSManagedObject {
+        let entity = NSEntityDescription.entity(forEntityName: name, in: container.viewContext)!
+        return NSManagedObject(entity: entity, insertInto: container.viewContext)
     }
 
 }
 
-extension DataStack {
+extension NSPersistentContainer {
     
-    convenience init(modelName: String, inMemory: Bool, storeName: String? = nil) {
+    convenience init(modelName: String, inMemory: Bool = true, storeName: String? = nil) {
         let modelURL = Bundle.module.url(forResource: modelName, withExtension: "momd")!
         guard let model = NSManagedObjectModel(contentsOf: modelURL) else {
             fatalError("Can't get \(modelName).momd in Bundle")
         }
         
-        let container = NSPersistentContainer(name: "CoreSSH", managedObjectModel: model)
-        container.testSetup(inMemory: inMemory, storeName: storeName)
-        self.init(persistentContainer: container)
+        defer {
+            self.testSetup(inMemory: inMemory, storeName: storeName)
+        }
+        
+        self.init(name: modelName, managedObjectModel: model)
     }
     
 }
 
-
 private extension NSPersistentContainer {
+    
+    /// The directory URL for the sqlite file.
+    static var sqliteDirectoryURL: URL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).last!
     
     func testSetup(inMemory: Bool, storeName: String?) {
         if inMemory {
             self.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
         } else if let storeName = storeName {
             let storeFileName = storeName + ".sqlite"
-            let storeURL = FileManager.sqliteDirectoryURL.appendingPathComponent(storeFileName)
+            let storeURL = Self.sqliteDirectoryURL.appendingPathComponent(storeFileName)
             self.persistentStoreDescriptions = [NSPersistentStoreDescription(url: storeURL)]
         }
         
@@ -108,22 +93,6 @@ private extension NSPersistentContainer {
         // Merge settings
         self.viewContext.automaticallyMergesChangesFromParent = true
         self.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        
-        // TODO: remove in future release
-        // https://mjtsai.com/blog/2023/08/15/turning-off-core-data-persistent-history-tracking/
-//        if !iCloudSync, !CorePreferences.shared._syncKeepPersistentHistory {
-//            let request = NSPersistentHistoryChangeRequest.deleteHistory(before: .distantFuture)
-//            self.viewContext.perform {
-//                _ = try? self.viewContext.execute(request)
-//                CorePreferences.shared._syncKeepPersistentHistory = true
-//            }
-//        }
-        
-        do {
-            try self.viewContext.setQueryGenerationFrom(.current)
-        } catch {
-            fatalError("Failed to pin viewContext to the current generation:\(error)")
-        }
     }
     
 }

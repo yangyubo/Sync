@@ -17,14 +17,14 @@ class SyncDictionaryTests : XCTestCase {
     
     // MARK: Set up
     
-    let dataStack : DataStack = Helper.dataStackWithModelName("Model")
+    let container = NSPersistentContainer(modelName: "Model")
     
     func entityNamed(_ entityName: String, inContext context: NSManagedObjectContext) -> Any? {
         return NSEntityDescription.insertNewObject(forEntityName: entityName, into: context)
     }
     
-    func userUsingDataStack(_ dataStack: DataStack) -> NSManagedObject {
-        let user: NSManagedObject = self.entityNamed("User", inContext: dataStack.mainContext) as! NSManagedObject
+    func userUsingContainer(_ container: NSPersistentContainer) -> NSManagedObject {
+        let user: NSManagedObject = self.entityNamed("User", inContext: container.viewContext) as! NSManagedObject
         user.setValue(25, forKey: "age")
         user.setValue(self.testDate, forKey: "birthDate")
         user.setValue(235, forKey:"contractID")
@@ -61,17 +61,17 @@ class SyncDictionaryTests : XCTestCase {
             assertionFailure("NSKeyedArchiver expenses failed", file: "SyncDictionaryTests", line: 57)
         }
         
-        var note  = self.noteWithID(1, inContext: self.dataStack.mainContext)
+        var note  = self.noteWithID(1, inContext: self.container.viewContext)
         note.setValue(user, forKey: "user")
         
-        note = self.noteWithID(14, inContext: self.dataStack.mainContext)
+        note = self.noteWithID(14, inContext: self.container.viewContext)
         note.setValue(user, forKey: "user")
         note.setValue(true, forKey: "destroy")
         
-        note = self.noteWithID(7, inContext: self.dataStack.mainContext)
+        note = self.noteWithID(7, inContext: self.container.viewContext)
         note.setValue(user, forKey: "user")
         
-        let company: NSManagedObject = self.companyWithID(1, andName: "Facebook", inContext: self.dataStack.mainContext)
+        let company: NSManagedObject = self.companyWithID(1, andName: "Facebook", inContext: self.container.viewContext)
         company.setValue(user, forKey: "user")
         return user
         
@@ -152,8 +152,7 @@ class SyncDictionaryTests : XCTestCase {
     }
     
     func testDictionaryWithNoRelationships() {
-        let dataStack = self.dataStack
-        let user: NSManagedObject = self.userUsingDataStack(dataStack)
+        let user: NSManagedObject = self.userUsingContainer(container)
         let dictionary = user.hyp_dictionary(.none)
         let compareDictionary = self.userDictionaryWithNoRelationships()
         for (key, value) in compareDictionary {
@@ -165,8 +164,7 @@ class SyncDictionaryTests : XCTestCase {
     }
     
     func testDictionaryArrayRelationships() {
-        let dataStack = self.dataStack
-        let user: NSManagedObject = self.userUsingDataStack(dataStack)
+        let user: NSManagedObject = self.userUsingContainer(container)
         var dictionary = user.hyp_dictionary(.array)
         var comparedDictionary = userDictionaryWithNoRelationships()
         comparedDictionary["company"] = ["id" : 1,
@@ -200,9 +198,9 @@ class SyncDictionaryTests : XCTestCase {
     
     
     func testDictionaryArrayRelationshipsOrdered() {
-        let dataStack: DataStack = Helper.dataStackWithModelName("Ordered")
+        let container = NSPersistentContainer(modelName: "Ordered")
         
-        let user: NSManagedObject = entityNamed("OrderedUser", inContext: dataStack.mainContext) as! NSManagedObject
+        let user: NSManagedObject = entityNamed("OrderedUser", inContext: container.viewContext) as! NSManagedObject
         
         user.setValue("raw", forKey:"rawSigned")
 
@@ -239,14 +237,14 @@ class SyncDictionaryTests : XCTestCase {
             assertionFailure("NSKeyedArchiver expenses failed", file: "SyncDictionaryTests", line: 57)
         }
         
-        var note = orderedNoteWithID(1, inContext: dataStack.mainContext)
+        var note = orderedNoteWithID(1, inContext: container.viewContext)
         note.setValue(user, forKey: "user")
         
-        note = orderedNoteWithID(14, inContext: dataStack.mainContext)
+        note = orderedNoteWithID(14, inContext: container.viewContext)
         note.setValue(user, forKey: "user")
         note.setValue(true, forKey: "destroy")
         
-        note = orderedNoteWithID(7, inContext: dataStack.mainContext)
+        note = orderedNoteWithID(7, inContext: container.viewContext)
         note.setValue(user, forKey: "user")
         
         var dictionary = user.hyp_dictionary(.array)
@@ -286,22 +284,20 @@ class SyncDictionaryTests : XCTestCase {
     
     
     func testDictionaryDeepRelationships() {
-        let dataStack = self.dataStack
-
-        let building = entityNamed("Building", inContext: dataStack.mainContext) as! NSManagedObject
+        let building = entityNamed("Building", inContext: container.viewContext) as! NSManagedObject
         building.setValue(1, forKey: "remoteID")
 
-        let park = entityNamed("Park", inContext: dataStack.mainContext) as! NSManagedObject
+        let park = entityNamed("Park", inContext: container.viewContext) as! NSManagedObject
         park.setValue(1, forKey: "remoteID")
 
         var parks: Set<AnyHashable> = (building.value(forKey: "parks") as! Set<AnyHashable>)
         let _ = parks.insert(park)
         building.setValue(parks, forKey:"parks")
 
-        let apartment: NSManagedObject = entityNamed("Apartment", inContext: dataStack.mainContext) as! NSManagedObject
+        let apartment: NSManagedObject = entityNamed("Apartment", inContext: container.viewContext) as! NSManagedObject
         apartment.setValue(1, forKey: "remoteID")
 
-        let room: NSManagedObject = entityNamed("Room", inContext: dataStack.mainContext) as! NSManagedObject
+        let room: NSManagedObject = entityNamed("Room", inContext: container.viewContext) as! NSManagedObject
         room.setValue(1, forKey:"remoteID")
 
         var rooms: Set<AnyHashable> = (apartment.value(forKey: "rooms") as! Set<AnyHashable>)
@@ -325,8 +321,7 @@ class SyncDictionaryTests : XCTestCase {
     }
     
     func testDictionaryValuesKindOfClass() {
-        let dataStack = dataStack
-        let user = userUsingDataStack(dataStack)
+        let user = userUsingContainer(container)
         let dictionary = user.hyp_dictionary()
         
         XCTAssertTrue(dictionary["age_of_person"] is NSNumber)
@@ -366,12 +361,10 @@ class SyncDictionaryTests : XCTestCase {
     
     
     func testRecursive() {
-        let dataStack = dataStack
-        
-        let megachild: NSManagedObject = entityNamed("Recursive", inContext: dataStack.mainContext) as! NSManagedObject
+        let megachild: NSManagedObject = entityNamed("Recursive", inContext: container.viewContext) as! NSManagedObject
         megachild.setValue("megachild", forKey: "remoteID")
         
-        let grandchild: NSManagedObject = entityNamed("Recursive", inContext: dataStack.mainContext) as! NSManagedObject
+        let grandchild: NSManagedObject = entityNamed("Recursive", inContext: container.viewContext) as! NSManagedObject
         grandchild.setValue("grandchild", forKey: "remoteID")
         
         var recursives: Set<AnyHashable> = (grandchild.value(forKey: "recursives") as? Set<AnyHashable>)!
@@ -379,7 +372,7 @@ class SyncDictionaryTests : XCTestCase {
         grandchild.setValue(recursives, forKey: "recursives")
         megachild.setValue(grandchild, forKey: "recursive")
         
-        let child: NSManagedObject = entityNamed("Recursive", inContext: dataStack.mainContext) as! NSManagedObject
+        let child: NSManagedObject = entityNamed("Recursive", inContext: container.viewContext) as! NSManagedObject
         child.setValue("child", forKey: "remoteID")
         
         recursives = (child.value(forKey: "recursives") as? Set<AnyHashable>)!
@@ -387,7 +380,7 @@ class SyncDictionaryTests : XCTestCase {
 //        child.setValue(recursives, forKey: "recursive")
         grandchild.setValue(child, forKey: "recursive")
         
-        let parent: NSManagedObject = entityNamed("Recursive", inContext: dataStack.mainContext) as! NSManagedObject
+        let parent: NSManagedObject = entityNamed("Recursive", inContext: container.viewContext) as! NSManagedObject
         parent.setValue("Parent", forKey: "remoteID")
         
         recursives = parent.value(forKey: "recursives") as! Set<AnyHashable>

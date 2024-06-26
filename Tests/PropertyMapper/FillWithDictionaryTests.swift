@@ -5,21 +5,21 @@ import XCTest
 class FillWithDictionaryTests: XCTestCase {
 
     func testBug112() {
-        let dataStack = Helper.dataStackWithModelName("112")
+        let container = NSPersistentContainer(modelName: "112")
 
-        let owner = Helper.insertEntity("Owner", dataStack: dataStack)
+        let owner = Helper.insertEntity("Owner", container: container)
         owner.setValue(1, forKey: "id")
 
-        let taskList = Helper.insertEntity("TaskList", dataStack: dataStack)
+        let taskList = Helper.insertEntity("TaskList", container: container)
         taskList.setValue(1, forKey: "id")
         taskList.setValue(owner, forKey: "owner")
 
-        let task = Helper.insertEntity("Task", dataStack: dataStack)
+        let task = Helper.insertEntity("Task", container: container)
         task.setValue(1, forKey: "id")
         task.setValue(taskList, forKey: "taskList")
         task.setValue(owner, forKey: "owner")
 
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
 
         let ownerBody = [
             "id": 1,
@@ -36,13 +36,13 @@ class FillWithDictionaryTests: XCTestCase {
 
         XCTAssertEqual(expected as NSDictionary, taskList.hyp_dictionary(.array) as NSDictionary)
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testBug121() {
-        let dataStack = Helper.dataStackWithModelName("121")
+        let container = NSPersistentContainer(modelName: "121")
 
-        let album = Helper.insertEntity("Album", dataStack: dataStack)
+        let album = Helper.insertEntity("Album", container: container)
         let json = [
             "id": "a",
             "coverPhoto": ["id": "b"],
@@ -51,31 +51,31 @@ class FillWithDictionaryTests: XCTestCase {
 
         XCTAssertNotNil(album.value(forKey: "coverPhoto"))
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testBug123() {
-        let dataStack = Helper.dataStackWithModelName("123")
-        let user = Helper.insertEntity("User", dataStack: dataStack)
+        let container = NSPersistentContainer(modelName: "123")
+        let user = Helper.insertEntity("User", container: container)
         user.setValue(1, forKey: "id")
         user.setValue("Ignore me", forKey: "name")
 
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
         let expected = [
             "id": 1,
             ] as [String: Any]
 
         XCTAssertEqual(expected as NSDictionary, user.hyp_dictionary(.none) as NSDictionary)
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testBug129() {
         ValueTransformer.setValueTransformer(BadAPIValueTransformer(), forName: NSValueTransformerName(rawValue: "BadAPIValueTransformer"))
 
-        let dataStack = Helper.dataStackWithModelName("129")
+        let container = NSPersistentContainer(modelName: "129")
 
-        let user = Helper.insertEntity("User", dataStack: dataStack)
+        let user = Helper.insertEntity("User", container: container)
         let json = [
             "name": ["bad-backend-dev"],
             ] as [String: Any]
@@ -83,6 +83,6 @@ class FillWithDictionaryTests: XCTestCase {
         
         XCTAssertEqual(user.value(forKey: "name") as? String, "bad-backend-dev")
         
-        dataStack.drop()
+        dropContainer(container)
     }
 }

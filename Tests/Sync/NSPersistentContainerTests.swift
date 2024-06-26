@@ -39,7 +39,7 @@ class NSPersistentContainerTests: XCTestCase {
         if #available(iOS 10, *) {
             let expectation = self.expectation(description: "testSkipTestMode")
 
-            let persistentContainer = Helper.persistentStoreWithModelName("Camelcase")
+            let persistentContainer = NSPersistentContainer(modelName: "Camelcase")
             let objects = Helper.objectsFromJSON("camelcase.json") as! [[String: Any]]
 
             persistentContainer.sync(objects, inEntityNamed: "NormalUser") { error in
@@ -66,7 +66,7 @@ class NSPersistentContainerTests: XCTestCase {
     func testInsertOrUpdate() {
         if #available(iOS 10, *) {
             let expectation = self.expectation(description: "testSkipTestMode")
-            let persistentContainer = Helper.persistentStoreWithModelName("Tests")
+            let persistentContainer = NSPersistentContainer(modelName: "Tests")
             let json = ["id": 1]
             persistentContainer.insertOrUpdate(json, inEntityNamed: "User") { result in
                 switch result {
@@ -85,7 +85,7 @@ class NSPersistentContainerTests: XCTestCase {
     func testUpdate() {
         if #available(iOS 10, *) {
             let expectation = self.expectation(description: "testSkipTestMode")
-            let persistentContainer = Helper.persistentStoreWithModelName("id")
+            let persistentContainer = NSPersistentContainer(modelName: "id")
             let user = NSEntityDescription.insertNewObject(forEntityName: "User", into: persistentContainer.viewContext)
             user.setValue("id", forKey: "id")
             try! persistentContainer.viewContext.save()
@@ -113,7 +113,7 @@ class NSPersistentContainerTests: XCTestCase {
 
     func testDelete() {
         let expectation = self.expectation(description: "testSkipTestMode")
-        let persistentContainer = Helper.persistentStoreWithModelName("id")
+        let persistentContainer = NSPersistentContainer(modelName: "id")
         let user = NSEntityDescription.insertNewObject(forEntityName: "User", into: persistentContainer.viewContext)
         user.setValue("id", forKey: "id")
         try! persistentContainer.viewContext.save()
@@ -123,7 +123,6 @@ class NSPersistentContainerTests: XCTestCase {
             XCTAssertEqual(0, Helper.countForEntity("User", inContext: persistentContainer.viewContext))
             expectation.fulfill()
         }
-
         self.waitForExpectations(timeout: 150.0, handler: nil)
     }
 }

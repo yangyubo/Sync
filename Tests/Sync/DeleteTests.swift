@@ -5,28 +5,40 @@ import Sync
 
 class DeleteTests: XCTestCase {
     func testDeleteWithStringID() {
-        let dataStack = Helper.dataStackWithModelName("id")
-        let user = NSEntityDescription.insertNewObject(forEntityName: "User", into: dataStack.mainContext)
+        let container = NSPersistentContainer(modelName: "id")
+        let user = NSEntityDescription.insertNewObject(forEntityName: "User", into: container.viewContext)
         user.setValue("id", forKey: "id")
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
 
-        XCTAssertEqual(1, Helper.countForEntity("User", inContext: dataStack.mainContext))
-        try! dataStack.delete("id", inEntityNamed: "User")
-        XCTAssertEqual(0, Helper.countForEntity("User", inContext: dataStack.mainContext))
+        XCTAssertEqual(1, Helper.countForEntity("User", inContext: container.viewContext))
+        
+        let expectation = expectation(description: "\(#function)")
+        try! container.delete("id", inEntityNamed: "User") {_ in
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 10)
+        
+        XCTAssertEqual(0, Helper.countForEntity("User", inContext: container.viewContext))
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testDeleteWithNumberID() {
-        let dataStack = Helper.dataStackWithModelName("Tests")
-        let user = NSEntityDescription.insertNewObject(forEntityName: "User", into: dataStack.mainContext)
+        let container = NSPersistentContainer(modelName: "Tests")
+        let user = NSEntityDescription.insertNewObject(forEntityName: "User", into: container.viewContext)
         user.setValue(1, forKey: "remoteID")
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
 
-        XCTAssertEqual(1, Helper.countForEntity("User", inContext: dataStack.mainContext))
-        try! dataStack.delete(1, inEntityNamed: "User")
-        XCTAssertEqual(0, Helper.countForEntity("User", inContext: dataStack.mainContext))
+        XCTAssertEqual(1, Helper.countForEntity("User", inContext: container.viewContext))
+        
+        let expectation = expectation(description: "\(#function)")
+        try! container.delete(1, inEntityNamed: "User") { _ in
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 10)
+        
+        XCTAssertEqual(0, Helper.countForEntity("User", inContext: container.viewContext))
 
-        dataStack.drop()
+        dropContainer(container)
     }
 }

@@ -68,10 +68,6 @@ public protocol SyncDelegate: AnyObject {
         return self.downloadCancelled
     }
 
-    public var isAsynchronous: Bool {
-        return !TestCheck.isTesting
-    }
-
     var changes: [[String: Any]]
     var entityName: String
     var predicate: NSPredicate?
@@ -79,16 +75,16 @@ public protocol SyncDelegate: AnyObject {
     var parent: NSManagedObject?
     var parentRelationship: NSRelationshipDescription?
     var context: NSManagedObjectContext?
-    unowned var dataStack: DataStack
+    unowned var persistentContainer: NSPersistentContainer
 
-    public init(changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate? = nil, parent: NSManagedObject? = nil, parentRelationship: NSRelationshipDescription? = nil, context: NSManagedObjectContext? = nil, dataStack: DataStack, operations: Sync.OperationOptions = .all) {
+    public init(changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate? = nil, parent: NSManagedObject? = nil, parentRelationship: NSRelationshipDescription? = nil, context: NSManagedObjectContext? = nil, persistentContainer: NSPersistentContainer, operations: Sync.OperationOptions = .all) {
         self.changes = changes
         self.entityName = entityName
         self.predicate = predicate
         self.parent = parent
         self.parentRelationship = parentRelationship
         self.context = context
-        self.dataStack = dataStack
+        self.persistentContainer = persistentContainer
         self.filterOperations = operations
     }
 
@@ -104,7 +100,7 @@ public protocol SyncDelegate: AnyObject {
         self.didChangeValue(forKey: "isFinished")
     }
 
-    public func start() {
+    public func start(completion: (()->Void)? = nil) {
         if self.isCancelled {
             self.updateExecuting(false)
             self.updateFinished(true)
@@ -113,10 +109,12 @@ public protocol SyncDelegate: AnyObject {
             if let context = self.context {
                 context.perform {
                     self.perform(using: context)
+                    completion?()
                 }
             } else {
-                self.dataStack.performInNewBackgroundContext { backgroundContext in
-                    self.perform(using: backgroundContext)
+                persistentContainer.performBackgroundTask { context in
+                    self.perform(using: context)
+                    completion?()
                 }
             }
         }

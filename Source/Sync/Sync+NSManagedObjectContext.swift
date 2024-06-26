@@ -24,13 +24,7 @@ extension NSManagedObjectContext {
             error = syncError
         }
 
-        if TestCheck.isTesting {
-            completion?(error)
-        } else {
-            DispatchQueue.main.async {
-                completion?(error)
-            }
-        }
+        completion?(error)
     }
 
     /// Syncs the entity using the received array of dictionaries, maps one-to-many, many-to-many and one-to-one relationships.
@@ -129,13 +123,7 @@ extension Sync {
             error = syncError
         }
 
-        if TestCheck.isTesting {
-            completion?(error)
-        } else {
-            DispatchQueue.main.async {
-                completion?(error)
-            }
-        }
+        completion?(error)
     }
 
     /**

@@ -4,23 +4,30 @@ import CoreData
 import Sync
 
 class SyncDelegateTests: XCTestCase {
+    
     func testWillInsertJSON() {
-        let dataStack = Helper.dataStackWithModelName("Tests")
+        let container = NSPersistentContainer(modelName: "Tests")
 
         let json = [["id": 9, "completed": false]]
-        let syncOperation = Sync(changes: json, inEntityNamed: "User", dataStack: dataStack)
+        let syncOperation = Sync(changes: json, inEntityNamed: "User", persistentContainer: container)
         syncOperation.delegate = self
-        XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 0)
-        syncOperation.start()
-        XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
+        XCTAssertEqual(Helper.countForEntity("User", inContext: container.viewContext), 0)
+        
+        let expectation = expectation(description: "Sync Expectation")
+        syncOperation.start {
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 2)
 
-        if let task = Helper.fetchEntity("User", inContext: dataStack.mainContext).first {
+        XCTAssertEqual(Helper.countForEntity("User", inContext: container.viewContext), 1)
+
+        if let task = Helper.fetchEntity("User", inContext: container.viewContext).first {
             XCTAssertEqual(task.value(forKey: "remoteID") as? Int, 9)
             XCTAssertEqual(task.value(forKey: "localID") as? String, "local")
         } else {
             XCTFail()
         }
-        dataStack.drop()
+        dropContainer(container)
     }
 }
 

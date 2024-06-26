@@ -19,10 +19,10 @@ class DictionaryTests: XCTestCase {
 
     func testExportDictionaryWithSnakeCase() {
         // Fill in transformable attributes is not supported in Swift 3. Crashes when saving the context.
-        let dataStack = Helper.dataStackWithModelName("137")
-        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: dataStack.mainContext)
+        let container = NSPersistentContainer(modelName: "137")
+        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: container.viewContext)
         user.hyp_fill(with: self.sampleSnakeCaseJSON)
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
         
         let compared = [
             "description": "reserved",
@@ -50,15 +50,15 @@ class DictionaryTests: XCTestCase {
         XCTAssertEqual(compared as NSDictionary, result as NSDictionary)
 
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testExportDictionaryWithCamelCase() {
         // Fill in transformable attributes is not supported in Swift 3. Crashes when saving the context.
-        let dataStack = Helper.dataStackWithModelName("137")
-        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: dataStack.mainContext)
+        let container = NSPersistentContainer(modelName: "137")
+        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: container.viewContext)
         user.hyp_fill(with: self.sampleSnakeCaseJSON)
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
 
         let compared = [
             "description": "reserved",
@@ -80,22 +80,22 @@ class DictionaryTests: XCTestCase {
         print(result)
         XCTAssertEqual(compared as NSDictionary, result as NSDictionary)
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     let sampleSnakeCaseJSONWithRelationship = ["inflection_id": 1] as [String : Any]
 
     func testExportDictionaryWithSnakeCaseRelationshipArray() {
         // Fill in transformable attributes is not supported in Swift 3. Crashes when saving the context.
-        let dataStack = Helper.dataStackWithModelName("137")
-        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: dataStack.mainContext)
+        let container = NSPersistentContainer(modelName: "137")
+        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: container.viewContext)
         user.hyp_fill(with: self.sampleSnakeCaseJSONWithRelationship)
 
-        let company = NSEntityDescription.insertNewObject(forEntityName: "InflectionCompany", into: dataStack.mainContext)
+        let company = NSEntityDescription.insertNewObject(forEntityName: "InflectionCompany", into: container.viewContext)
         company.setValue(NSNumber(value: 1), forKey: "inflectionID")
         user.setValue(company, forKey: "camelCaseCompany")
 
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
 
         let compared = [
             "inflection_binary_data": NSNull(),
@@ -116,20 +116,20 @@ class DictionaryTests: XCTestCase {
         print(result)
         XCTAssertEqual(compared as NSDictionary, result as NSDictionary)
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testExportDictionaryWithCamelCaseRelationshipArray() {
         // Fill in transformable attributes is not supported in Swift 3. Crashes when saving the context.
-        let dataStack = Helper.dataStackWithModelName("137")
-        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: dataStack.mainContext)
+        let container = NSPersistentContainer(modelName: "137")
+        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: container.viewContext)
         user.hyp_fill(with: self.sampleSnakeCaseJSONWithRelationship)
 
-        let company = NSEntityDescription.insertNewObject(forEntityName: "InflectionCompany", into: dataStack.mainContext)
+        let company = NSEntityDescription.insertNewObject(forEntityName: "InflectionCompany", into: container.viewContext)
         company.setValue(NSNumber(value: 1), forKey: "inflectionID")
         user.setValue(company, forKey: "camelCaseCompany")
 
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
 
         let compared = [
             "inflectionBinaryData": NSNull(),
@@ -150,20 +150,20 @@ class DictionaryTests: XCTestCase {
         print(result)
         XCTAssertEqual(compared as NSDictionary, result as NSDictionary)
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testExportDictionaryWithSnakeCaseRelationshipNested() {
         // Fill in transformable attributes is not supported in Swift 3. Crashes when saving the context.
-        let dataStack = Helper.dataStackWithModelName("137")
-        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: dataStack.mainContext)
+        let container = NSPersistentContainer(modelName: "137")
+        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: container.viewContext)
         user.hyp_fill(with: self.sampleSnakeCaseJSONWithRelationship)
 
-        let company = NSEntityDescription.insertNewObject(forEntityName: "InflectionCompany", into: dataStack.mainContext)
+        let company = NSEntityDescription.insertNewObject(forEntityName: "InflectionCompany", into: container.viewContext)
         company.setValue(NSNumber(value: 1), forKey: "inflectionID")
         user.setValue(company, forKey: "camelCaseCompany")
 
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
 
         let compared = [
             "inflection_binary_data": NSNull(),
@@ -184,20 +184,20 @@ class DictionaryTests: XCTestCase {
         print(result)
         XCTAssertEqual(compared as NSDictionary, result as NSDictionary)
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testExportDictionaryWithCamelCaseRelationshipNested() {
         // Fill in transformable attributes is not supported in Swift 3. Crashes when saving the context.
-        let dataStack = Helper.dataStackWithModelName("137")
-        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: dataStack.mainContext)
+        let container = NSPersistentContainer(modelName: "137")
+        let user = NSEntityDescription.insertNewObject(forEntityName: "InflectionUser", into: container.viewContext)
         user.hyp_fill(with: self.sampleSnakeCaseJSONWithRelationship)
 
-        let company = NSEntityDescription.insertNewObject(forEntityName: "InflectionCompany", into: dataStack.mainContext)
+        let company = NSEntityDescription.insertNewObject(forEntityName: "InflectionCompany", into: container.viewContext)
         company.setValue(NSNumber(value: 1), forKey: "inflectionID")
         user.setValue(company, forKey: "camelCaseCompany")
 
-        try! dataStack.mainContext.save()
+        try! container.viewContext.save()
 
         let compared = [
             "inflectionBinaryData": NSNull(),
@@ -218,15 +218,15 @@ class DictionaryTests: XCTestCase {
         print(result)
         XCTAssertEqual(compared as NSDictionary, result as NSDictionary)
         
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testReservedAttributeNotExportingWell() {
-        let dataStack = Helper.dataStackWithModelName("142")
-        let user = NSEntityDescription.insertNewObject(forEntityName: "TwoLetterEntity", into: dataStack.mainContext)
+        let container = NSPersistentContainer(modelName: "142")
+        let user = NSEntityDescription.insertNewObject(forEntityName: "TwoLetterEntity", into: container.viewContext)
         user.hyp_fill(with: ["description": "test"])
        
-        try? dataStack.mainContext.save()
+        try? container.viewContext.save()
 
         let compared = ["description": "test"] as [String : Any]
 
@@ -234,16 +234,16 @@ class DictionaryTests: XCTestCase {
         print(result)
         XCTAssertEqual(compared as NSDictionary, result as NSDictionary)
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
-    func setUpWorkout(dataStack: DataStack) -> NSManagedObject {
-        let workout = NSEntityDescription.insertNewObject(forEntityName: "Workout", into: dataStack.mainContext)
+    func setUpWorkout(container: NSPersistentContainer) -> NSManagedObject {
+        let workout = NSEntityDescription.insertNewObject(forEntityName: "Workout", into: container.viewContext)
         workout.setValue(UUID().uuidString, forKey: "id")
         workout.setValue(UUID().uuidString, forKey: "workoutDesc")
         workout.setValue(UUID().uuidString, forKey: "workoutName")
 
-        let calendar = NSEntityDescription.insertNewObject(forEntityName: "Calendar", into: dataStack.mainContext)
+        let calendar = NSEntityDescription.insertNewObject(forEntityName: "Calendar", into: container.viewContext)
         calendar.setValue(UUID().uuidString, forKey: "eventSourceType")
         calendar.setValue(UUID().uuidString, forKey: "id")
         calendar.setValue(NSNumber(value: true), forKey: "isCompleted")
@@ -253,13 +253,13 @@ class DictionaryTests: XCTestCase {
         plannedToIDs.add(calendar)
         workout.setValue(plannedToIDs, forKey: "plannedToIDs")
 
-        let exercise = NSEntityDescription.insertNewObject(forEntityName: "Exercise", into: dataStack.mainContext)
+        let exercise = NSEntityDescription.insertNewObject(forEntityName: "Exercise", into: container.viewContext)
         exercise.setValue(UUID().uuidString, forKey: "exerciseDesc")
         exercise.setValue(UUID().uuidString, forKey: "exerciseName")
         exercise.setValue(UUID().uuidString, forKey: "id")
         exercise.setValue(UUID().uuidString, forKey: "mainMuscle")
 
-        let exerciseSet = NSEntityDescription.insertNewObject(forEntityName: "ExerciseSet", into: dataStack.mainContext)
+        let exerciseSet = NSEntityDescription.insertNewObject(forEntityName: "ExerciseSet", into: container.viewContext)
         exerciseSet.setValue(UUID().uuidString, forKey: "id")
         exerciseSet.setValue(NSNumber(value: true), forKey: "isCompleted")
         exerciseSet.setValue(NSNumber(value: 0), forKey: "setNumber")
@@ -278,9 +278,9 @@ class DictionaryTests: XCTestCase {
     }
 
     func testBug140CamelCase() {
-        let dataStack = Helper.dataStackWithModelName("140")
+        let container = NSPersistentContainer(modelName: "140")
 
-        let workout = self.setUpWorkout(dataStack: dataStack)
+        let workout = self.setUpWorkout(container: container)
 
         let result = workout.hyp_dictionary(using: .camelCase, andRelationshipType: .array)
 
@@ -292,13 +292,13 @@ class DictionaryTests: XCTestCase {
         XCTAssertEqual(rootKeys[3], "workoutExercises")
         XCTAssertEqual(rootKeys[4], "workoutName")
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testBug140SnakeCase() {
-        let dataStack = Helper.dataStackWithModelName("140")
+        let container = NSPersistentContainer(modelName: "140")
 
-        let workout = self.setUpWorkout(dataStack: dataStack)
+        let workout = self.setUpWorkout(container: container)
 
         let result = workout.hyp_dictionary(using: .snakeCase, andRelationshipType: .array)
 
@@ -310,6 +310,6 @@ class DictionaryTests: XCTestCase {
         XCTAssertEqual(rootKeys[3], "workout_exercises")
         XCTAssertEqual(rootKeys[4], "workout_name")
 
-        dataStack.drop()
+        dropContainer(container)
     }
 }

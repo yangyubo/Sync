@@ -47,6 +47,51 @@ public extension NSPersistentContainer {
             Sync.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: parent, parentRelationship: parentRelationship, inContext: backgroundContext, operations: operations, completion: completion)
         }
     }
+    
+    
+    /// Syncs the entity using the received array of dictionaries, maps one-to-many, many-to-many and one-to-one relationships.
+    /// It also syncs relationships where only the id is present, for example if your model is: Company -> Employee,
+    /// and your employee has a company_id, it will try to sync using that ID instead of requiring you to provide the
+    /// entire company object inside the employees dictionary.
+    ///
+    /// - Parameters:
+    ///   - changes: The array of dictionaries used in the sync process.
+    ///   - entityName: The name of the entity to be synced.
+    ///   - parent: The parent of the synced items, useful if you are syncing the childs of an object, for example
+    /// an Album has many photos, if this photos don't incldue the album's JSON object, syncing the photos JSON requires
+    /// you to send the parent album to do the proper mapping.
+    ///   - completion: The completion block, it returns an error if something in the Sync process goes wrong.
+    func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, parent: NSManagedObject, completion: ((_ error: NSError?) -> Void)?) {
+        performBackgroundTask { backgroundContext in
+            let safeParent = parent.sync_copyInContext(backgroundContext)
+            guard let entity = NSEntityDescription.entity(forEntityName: entityName, in: backgroundContext) else { fatalError("Couldn't find entity named: \(entityName)") }
+            let relationships = entity.relationships(forDestination: parent.entity)
+            var predicate: NSPredicate?
+            let firstRelationship = relationships.first
+
+            if let firstRelationship = firstRelationship {
+                predicate = NSPredicate(format: "%K = %@", firstRelationship.name, safeParent)
+            }
+            Sync.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: safeParent, parentRelationship: firstRelationship?.inverseRelationship, inContext: backgroundContext, operations: .all, completion: completion)
+        }
+    }
+    
+    /// Syncs the entity using the received array of dictionaries, maps one-to-many, many-to-many and one-to-one relationships.
+    /// It also syncs relationships where only the id is present, for example if your model is: Company -> Employee,
+    /// and your employee has a company_id, it will try to sync using that ID instead of requiring you to provide the
+    /// entire company object inside the employees dictionary.
+    ///
+    /// - Parameters:
+    ///   - changes: The array of dictionaries used in the sync process.
+    ///   - entityName: The name of the entity to be synced.
+    ///   - predicate: The predicate used to filter out changes, if you want to exclude some local items to be taken in account in the Sync process, you just need to provide this predicate.
+    ///   - operations: The type of operations to be applied to the data, Insert, Update, Delete or any possible combination.
+    ///   - completion: The completion block, it returns an error if something in the Sync process goes wrong.
+    func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, operations: Sync.OperationOptions, completion: ((_ error: NSError?) -> Void)?) {
+        self.performBackgroundTask { backgroundContext in
+            Sync.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: nil, parentRelationship: nil, inContext: backgroundContext, operations: operations, completion: completion)
+        }
+    }
 
     /// Inserts or updates an object using the given changes dictionary in an specific entity.
     ///
@@ -61,14 +106,26 @@ public extension NSPersistentContainer {
                 let result = try Sync.insertOrUpdate(changes, inEntityNamed: entityName, using: backgroundContext)
                 let localPrimaryKey = result.entity.sync_localPrimaryKey()!
                 let id = result.value(forKey: localPrimaryKey)
-                DispatchQueue.main.async {
-                    completion(SyncResult.success(id!))
-                }
+                completion(SyncResult.success(id!))
             } catch let error as NSError {
-                DispatchQueue.main.async {
-                    completion(SyncResult.failure(error))
-                }
+                completion(SyncResult.failure(error))
             }
+        }
+    }
+    
+    /// Syncs the entity using the received array of dictionaries, maps one-to-many, many-to-many and one-to-one relationships.
+    /// It also syncs relationships where only the id is present, for example if your model is: Company -> Employee,
+    /// and your employee has a company_id, it will try to sync using that ID instead of requiring you to provide the
+    /// entire company object inside the employees dictionary.
+    ///
+    /// - Parameters:
+    ///   - changes: The array of dictionaries used in the sync process.
+    ///   - entityName: The name of the entity to be synced.
+    ///   - operations: The type of operations to be applied to the data, Insert, Update, Delete or any possible combination.
+    ///   - completion: The completion block, it returns an error if something in the Sync process goes wrong.
+    func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, operations: Sync.OperationOptions, completion: ((_ error: NSError?) -> Void)?) {
+        self.performBackgroundTask { backgroundContext in
+            Sync.changes(changes, inEntityNamed: entityName, predicate: nil, parent: nil, parentRelationship: nil, inContext: backgroundContext, operations: operations, completion: completion)
         }
     }
 
@@ -87,13 +144,10 @@ public extension NSPersistentContainer {
                     let localPrimaryKey = result.entity.sync_localPrimaryKey()!
                     updatedID = result.value(forKey: localPrimaryKey)
                 }
-                DispatchQueue.main.async {
-                    completion(SyncResult.success(updatedID!))
-                }
+                
+                completion(SyncResult.success(updatedID!))
             } catch let error as NSError {
-                DispatchQueue.main.async {
-                    completion(SyncResult.failure(error))
-                }
+                completion(SyncResult.failure(error))
             }
         }
     }
@@ -108,13 +162,9 @@ public extension NSPersistentContainer {
         self.performBackgroundTask { backgroundContext in
             do {
                 try Sync.delete(id, inEntityNamed: entityName, using: backgroundContext)
-                DispatchQueue.main.async {
-                    completion(nil)
-                }
+                completion(nil)
             } catch let error as NSError {
-                DispatchQueue.main.async {
-                    completion(error)
-                }
+                completion(error)
             }
         }
     }

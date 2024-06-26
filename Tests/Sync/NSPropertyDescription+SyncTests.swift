@@ -4,9 +4,9 @@ import CoreData
 
 class NSPropertyDescription_SyncTests: XCTestCase {
     func testOldCustomKey() {
-        let dataStack = Helper.dataStackWithModelName("RemoteKey")
+        let container = NSPersistentContainer(modelName: "RemoteKey")
 
-        if let entity = NSEntityDescription.entity(forEntityName: "Entity", in: dataStack.mainContext) {
+        if let entity = NSEntityDescription.entity(forEntityName: "Entity", in: container.viewContext) {
             let dayAttribute = entity.sync_attributes().filter { $0.name == "old" }.first
             if let dayAttribute = dayAttribute {
                 XCTAssertEqual(dayAttribute.customKey(), "custom_old")
@@ -17,13 +17,13 @@ class NSPropertyDescription_SyncTests: XCTestCase {
             XCTFail()
         }
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testCurrentCustomKey() {
-        let dataStack = Helper.dataStackWithModelName("RemoteKey")
+        let container = NSPersistentContainer(modelName: "RemoteKey")
 
-        if let entity = NSEntityDescription.entity(forEntityName: "Entity", in: dataStack.mainContext) {
+        if let entity = NSEntityDescription.entity(forEntityName: "Entity", in: container.viewContext) {
             let dayAttribute = entity.sync_attributes().filter { $0.name == "current" }.first
             if let dayAttribute = dayAttribute {
                 XCTAssertEqual(dayAttribute.customKey(), "custom_current")
@@ -34,7 +34,7 @@ class NSPropertyDescription_SyncTests: XCTestCase {
             XCTFail()
         }
 
-        dataStack.drop()
+        dropContainer(container)
     }
 
     func testIsCustomPrimaryKey() {

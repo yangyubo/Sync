@@ -18,8 +18,8 @@ class PrivateTests: XCTestCase {
     }
     
     func managedObjectContext() -> NSManagedObjectContext {
-        let dataStack: DataStack = Helper.dataStackWithModelName("Model")
-        return dataStack.mainContext
+        let container = NSPersistentContainer(modelName: "Model")
+        return container.viewContext
     }
     
     func testAttributeDescriptionForKeyA() {

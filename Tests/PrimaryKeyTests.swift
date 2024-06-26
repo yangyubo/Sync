@@ -13,8 +13,8 @@ import Sync
 class PrimaryKeyTests : XCTestCase {
     
     func entityForName(_ name: String) -> NSEntityDescription {
-        let dataStack = Helper.dataStackWithModelName("PrimaryKey")
-        return NSEntityDescription.entity(forEntityName: name, in: dataStack.mainContext)!
+        let container = NSPersistentContainer(modelName: "PrimaryKey")
+        return NSEntityDescription.entity(forEntityName: name, in: container.viewContext)!
     }
     
     
