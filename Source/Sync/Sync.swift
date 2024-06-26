@@ -15,7 +15,7 @@ public protocol SyncDelegate: AnyObject {
 }
 
 @objcMembers
-@objc public class Sync: Operation {
+@objc public class Sync: NSObject {
     public weak var delegate: SyncDelegate?
 
     public struct OperationOptions: OptionSet {
@@ -56,19 +56,19 @@ public protocol SyncDelegate: AnyObject {
     var downloadExecuting = false
     var downloadCancelled = false
 
-    public override var isFinished: Bool {
+    public var isFinished: Bool {
         return self.downloadFinished
     }
 
-    public override var isExecuting: Bool {
+    public var isExecuting: Bool {
         return self.downloadExecuting
     }
 
-    public override var isCancelled: Bool {
+    public var isCancelled: Bool {
         return self.downloadCancelled
     }
 
-    public override var isAsynchronous: Bool {
+    public var isAsynchronous: Bool {
         return !TestCheck.isTesting
     }
 
@@ -104,7 +104,7 @@ public protocol SyncDelegate: AnyObject {
         self.didChangeValue(forKey: "isFinished")
     }
 
-    public override func start() {
+    public func start() {
         if self.isCancelled {
             self.updateExecuting(false)
             self.updateFinished(true)
@@ -137,7 +137,7 @@ public protocol SyncDelegate: AnyObject {
         self.updateFinished(true)
     }
 
-    public override func cancel() {
+    public func cancel() {
         func updateCancelled(_ isCancelled: Bool) {
             self.willChangeValue(forKey: "isCancelled")
             self.downloadCancelled = isCancelled
