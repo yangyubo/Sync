@@ -4,13 +4,37 @@ import CoreData
 import Sync
 
 class SyncTests: XCTestCase {
+    
+    var syncExpectation: XCTestExpectation!
+    var syncCompletion: ((_ error: NSError?) -> Void)!
+    var synchronous = false
+    
+    var backExpectation: XCTestExpectation!
+    var backCompletion: (() -> Void)!
+    
+    override func setUp() {
+        synchronous = false
+        // syncExpectation = expectation(description: "Sync Expectation")
+        syncCompletion = { [weak self] error in
+            if let error = error {
+                XCTFail(error.description)
+            }
+            self?.synchronous = true
+            self?.syncExpectation.fulfill()
+        }
+        
+        backCompletion = { [weak self] in
+            self?.backExpectation.fulfill()
+        }
+    }
+    
     func testSynchronous() {
         let dataStack = Helper.dataStackWithModelName("Camelcase")
         let objects = Helper.objectsFromJSON("camelcase.json") as! [[String: Any]]
-        var synchronous = false
-        dataStack.sync(objects, inEntityNamed: "NormalUser") { _ in
-            synchronous = true
-        }
+        
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "NormalUser", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertTrue(synchronous)
         dataStack.drop()
     }
@@ -19,7 +43,9 @@ class SyncTests: XCTestCase {
     func testAutomaticCamelcaseMapping() {
         let dataStack = Helper.dataStackWithModelName("Camelcase")
         let objects = Helper.objectsFromJSON("camelcase.json") as! [[String: Any]]
-        dataStack.sync(objects, inEntityNamed: "NormalUser", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "NormalUser", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let result = Helper.fetchEntity("NormalUser", inContext: dataStack.mainContext)
         XCTAssertEqual(result.count, 1)
@@ -40,11 +66,15 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("Contacts")
 
         let objectsA = Helper.objectsFromJSON("users_a.json") as! [[String: Any]]
-        dataStack.sync(objectsA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 8)
 
         let objectsB = Helper.objectsFromJSON("users_b.json") as! [[String: Any]]
-        dataStack.sync(objectsB, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsB, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 6)
 
         let result = Helper.fetchEntity("User", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 7)), sortDescriptors: [NSSortDescriptor(key: "remoteID", ascending: true)], inContext: dataStack.mainContext).first!
@@ -67,7 +97,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("Contacts")
 
         let objects = Helper.objectsFromJSON("users_company.json") as! [[String: Any]]
-        dataStack.sync(objects, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 5)
         let user = Helper.fetchEntity("User", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 0)), sortDescriptors: [NSSortDescriptor(key: "remoteID", ascending: true)], inContext: dataStack.mainContext).first!
@@ -83,7 +115,9 @@ class SyncTests: XCTestCase {
     func testCustomMappingAndCustomPrimaryKey() {
         let dataStack = Helper.dataStackWithModelName("Contacts")
         let objects = Helper.objectsFromJSON("images.json") as! [[String: Any]]
-        dataStack.sync(objects, inEntityNamed: "Image", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "Image", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let array = Helper.fetchEntity("Image", sortDescriptors: [NSSortDescriptor(key: "url", ascending: true)], inContext: dataStack.mainContext)
         XCTAssertEqual(array.count, 3)
@@ -97,7 +131,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("Contacts")
 
         let objects = Helper.objectsFromJSON("users_c.json") as! [[String: Any]]
-        dataStack.sync(objects, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 4)
 
         let users = Helper.fetchEntity("User", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 6)), inContext: dataStack.mainContext)
@@ -122,11 +158,15 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("Contacts")
 
         let objectsA = Helper.objectsFromJSON("operation-types-users-a.json") as! [[String: Any]]
-        dataStack.sync(objectsA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 2)
 
         let objectsB = Helper.objectsFromJSON("operation-types-users-b.json") as! [[String: Any]]
-        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.insert], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.insert], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
 
         let result = Helper.fetchEntity("User", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 0)), sortDescriptors: [NSSortDescriptor(key: "remoteID", ascending: true)], inContext: dataStack.mainContext).first!
@@ -142,17 +182,23 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("Contacts")
 
         let objectsA = Helper.objectsFromJSON("operation-types-users-a.json") as! [[String: Any]]
-        dataStack.sync(objectsA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 2)
 
         let objectsB = Helper.objectsFromJSON("operation-types-users-b.json") as! [[String: Any]]
-        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.insert], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.insert], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
 
         let result = Helper.fetchEntity("User", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 0)), sortDescriptors: [NSSortDescriptor(key: "remoteID", ascending: true)], inContext: dataStack.mainContext).first!
         XCTAssertEqual(result.value(forKey: "email") as? String, "melisawhite@ovium.com")
 
-        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.insert], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.insert], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
 
         dataStack.drop()
@@ -165,11 +211,15 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("Contacts")
 
         let objectsA = Helper.objectsFromJSON("operation-types-users-a.json") as! [[String: Any]]
-        dataStack.sync(objectsA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 2)
 
         let objectsB = Helper.objectsFromJSON("operation-types-users-b.json") as! [[String: Any]]
-        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.update], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.update], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 2)
 
         let result = Helper.fetchEntity("User", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 0)), sortDescriptors: [NSSortDescriptor(key: "remoteID", ascending: true)], inContext: dataStack.mainContext).first!
@@ -185,11 +235,15 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("Contacts")
 
         let objectsA = Helper.objectsFromJSON("operation-types-users-a.json") as! [[String: Any]]
-        dataStack.sync(objectsA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 2)
 
         let objectsB = Helper.objectsFromJSON("operation-types-users-b.json") as! [[String: Any]]
-        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.delete], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.delete], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
 
         let result = Helper.fetchEntity("User", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 0)), sortDescriptors: [NSSortDescriptor(key: "remoteID", ascending: true)], inContext: dataStack.mainContext).first!
@@ -205,11 +259,15 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("Contacts")
 
         let objectsA = Helper.objectsFromJSON("operation-types-users-a.json") as! [[String: Any]]
-        dataStack.sync(objectsA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 2)
 
         let objectsB = Helper.objectsFromJSON("operation-types-users-b.json") as! [[String: Any]]
-        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.insert, .update], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objectsB, inEntityNamed: "User", operations: [.insert, .update], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
 
         let user0 = Helper.fetchEntity("User", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 0)), sortDescriptors: [NSSortDescriptor(key: "remoteID", ascending: true)], inContext: dataStack.mainContext).first!
@@ -227,7 +285,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("users_notes.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Notes")
 
-        dataStack.sync(objects, inEntityNamed: "SuperUser", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "SuperUser", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("SuperUser", inContext: dataStack.mainContext), 4)
         let users = Helper.fetchEntity("SuperUser", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 6)), inContext: dataStack.mainContext)
@@ -243,20 +303,26 @@ class SyncTests: XCTestCase {
     func testObjectsForParent() {
         let objects = Helper.objectsFromJSON("notes_for_user_a.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("InsertObjectsInParent")
-        dataStack.performInNewBackgroundContext { backgroundContext in
+        
+        backExpectation = expectation(description: "Background Context")
+        dataStack.performInNewBackgroundContext { [weak self] backgroundContext in
             // First, we create a parent user, this user is the one that will own all the notes
             let user = NSEntityDescription.insertNewObject(forEntityName: "SuperUser", into: backgroundContext)
             user.setValue(NSNumber(value: 6), forKey: "remoteID")
 
             try! backgroundContext.save()
+            self?.backCompletion()
         }
+        waitForExpectations(timeout: 2)
 
         // Then we fetch the user on the main context, because we don't want to break things between contexts
         var users = Helper.fetchEntity("SuperUser", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 6)), inContext: dataStack.mainContext)
         XCTAssertEqual(users.count, 1)
 
         // Finally we say "Sync all the notes, for this user"
-        dataStack.sync(objects, inEntityNamed: "SuperNote", parent: users.first!, completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "SuperNote", parent: users.first!, completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         // Here we just make sure that the user has the notes that we just inserted
         users = Helper.fetchEntity("SuperUser", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 6)), inContext: dataStack.mainContext)
@@ -273,7 +339,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("tagged_notes.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Notes")
 
-        dataStack.sync(objects, inEntityNamed: "SuperNote", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "SuperNote", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("SuperNote", inContext: dataStack.mainContext), 3)
         let notes = Helper.fetchEntity("SuperNote", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 0)), inContext: dataStack.mainContext)
@@ -293,7 +361,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("custom_relationship_key_to_many.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("CustomRelationshipKey")
 
-        dataStack.sync(objects, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let array = Helper.fetchEntity("User", inContext: dataStack.mainContext)
         let user = array.first!
@@ -308,7 +378,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("numbers.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Recursive")
 
-        dataStack.sync(objects, inEntityNamed: "Number", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "Number", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Number", inContext: dataStack.mainContext), 6)
 
         dataStack.drop()
@@ -318,7 +390,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("numbers_in_collection.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Recursive")
 
-        dataStack.sync(objects, inEntityNamed: "Number", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "Number", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Collection", inContext: dataStack.mainContext), 1)
 
@@ -336,7 +410,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("comments-no-id.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Social")
 
-        dataStack.sync(objects, inEntityNamed: "SocialComment", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "SocialComment", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("SocialComment", inContext: dataStack.mainContext), 8)
         let comments = Helper.fetchEntity("SocialComment", predicate: NSPredicate(format: "body = %@", "comment 1"), inContext: dataStack.mainContext)
@@ -353,7 +429,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("stories-comments-no-ids.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Social")
 
-        dataStack.sync(objects, inEntityNamed: "Story", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "Story", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Story", inContext: dataStack.mainContext), 3)
         let stories = Helper.fetchEntity("Story", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 0)), inContext: dataStack.mainContext)
@@ -382,7 +460,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("custom_relationship_key_to_one.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Social")
 
-        dataStack.sync(objects, inEntityNamed: "Story", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "Story", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let array = Helper.fetchEntity("Story", inContext: dataStack.mainContext)
         let story = array.first!
@@ -397,7 +477,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("markets_items.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Markets")
 
-        dataStack.sync(objects, inEntityNamed: "Market", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "Market", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Market", inContext: dataStack.mainContext), 2)
         let markets = Helper.fetchEntity("Market", predicate: NSPredicate(format: "uniqueId = %@", "1"), inContext: dataStack.mainContext)
@@ -420,10 +502,14 @@ class SyncTests: XCTestCase {
         let json = Helper.objectsFromJSON("organizations-tree.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Organizations")
 
-        dataStack.sync(json, inEntityNamed: "OrganizationUnit", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(json, inEntityNamed: "OrganizationUnit", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("OrganizationUnit", inContext: dataStack.mainContext), 7)
 
-        dataStack.sync(json, inEntityNamed: "OrganizationUnit", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(json, inEntityNamed: "OrganizationUnit", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("OrganizationUnit", inContext: dataStack.mainContext), 7)
 
         dataStack.drop()
@@ -440,12 +526,16 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("unique.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Unique")
 
-        dataStack.sync(objects, inEntityNamed: "A", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "A", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("A", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("B", inContext: dataStack.mainContext), 2)
         XCTAssertEqual(Helper.countForEntity("C", inContext: dataStack.mainContext), 0)
 
-        dataStack.sync(objects, inEntityNamed: "C", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "C", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("A", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("B", inContext: dataStack.mainContext), 2)
         XCTAssertEqual(Helper.countForEntity("C", inContext: dataStack.mainContext), 1)
@@ -459,7 +549,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("patients.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Patients")
 
-        dataStack.sync(objects, inEntityNamed: "Patient", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "Patient", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Patient", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Baseline", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Alcohol", inContext: dataStack.mainContext), 1)
@@ -476,7 +568,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("bug-number-84.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("84")
 
-        dataStack.sync(objects, inEntityNamed: "MSStaff", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "MSStaff", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("MSStaff", inContext: dataStack.mainContext), 1)
 
@@ -502,7 +596,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("bug-113-comments-no-id.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("113")
 
-        dataStack.sync(objects, inEntityNamed: "AwesomeComment", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "AwesomeComment", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("AwesomeComment", inContext: dataStack.mainContext), 8)
         let comments = Helper.fetchEntity("AwesomeComment", predicate: NSPredicate(format: "body = %@", "comment 1"), inContext: dataStack.mainContext)
@@ -519,7 +615,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("bug-113-stories-comments-no-ids.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("113")
 
-        dataStack.sync(objects, inEntityNamed: "AwesomeStory", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "AwesomeStory", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("AwesomeStory", inContext: dataStack.mainContext), 3)
         let stories = Helper.fetchEntity("AwesomeStory", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 0)), inContext: dataStack.mainContext)
@@ -548,7 +646,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("bug-113-custom_relationship_key_to_one.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("113")
 
-        dataStack.sync(objects, inEntityNamed: "AwesomeStory", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "AwesomeStory", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let array = Helper.fetchEntity("AwesomeStory", inContext: dataStack.mainContext)
         let story = array.first!
@@ -564,7 +664,9 @@ class SyncTests: XCTestCase {
         let uri = formDictionary["uri"] as! String
         let dataStack = Helper.dataStackWithModelName("125")
 
-        dataStack.sync([formDictionary], inEntityNamed: "Form", predicate: NSPredicate(format: "uri == %@", uri), completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync([formDictionary], inEntityNamed: "Form", predicate: NSPredicate(format: "uri == %@", uri), completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Form", inContext: dataStack.mainContext), 1)
 
@@ -592,7 +694,9 @@ class SyncTests: XCTestCase {
         let formDictionary = Helper.objectsFromJSON("story-summarize.json") as! [String: Any]
         let dataStack = Helper.dataStackWithModelName("Social")
 
-        dataStack.sync([formDictionary], inEntityNamed: "Story", predicate: NSPredicate(format: "remoteID == %@", NSNumber(value: 1)), completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync([formDictionary], inEntityNamed: "Story", predicate: NSPredicate(format: "remoteID == %@", NSNumber(value: 1)), completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Story", inContext: dataStack.mainContext), 1)
         let stories = Helper.fetchEntity("Story", predicate: NSPredicate(format: "remoteID = %@", NSNumber(value: 1)), inContext: dataStack.mainContext)
@@ -621,14 +725,18 @@ class SyncTests: XCTestCase {
         let usersDictionary = Helper.objectsFromJSON("users_a.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("Notes")
 
-        dataStack.sync(usersDictionary, inEntityNamed: "SuperUser", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersDictionary, inEntityNamed: "SuperUser", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let usersCount = Helper.countForEntity("SuperUser", inContext: dataStack.mainContext)
         XCTAssertEqual(usersCount, 8)
 
         let notesDictionary = Helper.objectsFromJSON("notes_with_user_id.json") as! [[String: Any]]
 
-        dataStack.sync(notesDictionary, inEntityNamed: "SuperNote", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(notesDictionary, inEntityNamed: "SuperNote", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let notesCount = Helper.countForEntity("SuperNote", inContext: dataStack.mainContext)
         XCTAssertEqual(notesCount, 5)
@@ -654,14 +762,18 @@ class SyncTests: XCTestCase {
         let usersDictionary = Helper.objectsFromJSON("users_a.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("NotesB")
 
-        dataStack.sync(usersDictionary, inEntityNamed: "SuperUserB", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersDictionary, inEntityNamed: "SuperUserB", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let usersCount = Helper.countForEntity("SuperUserB", inContext: dataStack.mainContext)
         XCTAssertEqual(usersCount, 8)
 
         let notesDictionary = Helper.objectsFromJSON("notes_with_user_id_custom.json") as! [[String: Any]]
 
-        dataStack.sync(notesDictionary, inEntityNamed: "SuperNoteB", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(notesDictionary, inEntityNamed: "SuperNoteB", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let notesCount = Helper.countForEntity("SuperNoteB", inContext: dataStack.mainContext)
         XCTAssertEqual(notesCount, 5)
@@ -680,7 +792,9 @@ class SyncTests: XCTestCase {
         let objects = Helper.objectsFromJSON("comments-no-id.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("OrderedSocial")
 
-        dataStack.sync(objects, inEntityNamed: "Comment", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(objects, inEntityNamed: "Comment", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Comment", inContext: dataStack.mainContext), 8)
         let comments = Helper.fetchEntity("Comment", predicate: NSPredicate(format: "body = %@", "comment 1"), inContext: dataStack.mainContext)
@@ -700,8 +814,12 @@ class SyncTests: XCTestCase {
         let routes = Helper.objectsFromJSON("bug-179-routes.json") as! [String: Any]
         let dataStack = Helper.dataStackWithModelName("179")
 
-        dataStack.sync(places, inEntityNamed: "Place", completion: nil)
-        dataStack.sync([routes], inEntityNamed: "Route", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(places, inEntityNamed: "Place", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync([routes], inEntityNamed: "Route", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Route", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Place", inContext: dataStack.mainContext), 2)
@@ -724,11 +842,15 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("202")
 
         let initialInsert = Helper.objectsFromJSON("bug-202-a.json") as! [[String: Any]]
-        dataStack.sync(initialInsert, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initialInsert, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
         let removeAll = Helper.objectsFromJSON("bug-202-b.json") as! [[String: Any]]
-        dataStack.sync(removeAll, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(removeAll, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
         dataStack.drop()
@@ -740,7 +862,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("id")
 
         let users = Helper.objectsFromJSON("id.json") as! [[String: Any]]
-        dataStack.sync(users, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(users, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 2)
 
         dataStack.drop()
@@ -753,18 +877,24 @@ class SyncTests: XCTestCase {
 
         // 3 locations get synced, their references get ignored since no cities are found
         let locations = Helper.objectsFromJSON("157-locations.json") as! [[String: Any]]
-        dataStack.sync(locations, inEntityNamed: "Location", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(locations, inEntityNamed: "Location", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Location", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("City", inContext: dataStack.mainContext), 0)
 
         // 3 cities get synced
         let cities = Helper.objectsFromJSON("157-cities.json") as! [[String: Any]]
-        dataStack.sync(cities, inEntityNamed: "City", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(cities, inEntityNamed: "City", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Location", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("City", inContext: dataStack.mainContext), 3)
 
         // 3 locations get synced, but now since their references are available the relationships get made
-        dataStack.sync(locations, inEntityNamed: "Location", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(locations, inEntityNamed: "Location", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         var location1 = Helper.fetchEntity("Location", predicate: NSPredicate(format: "locationID = 0"), inContext: dataStack.mainContext).first
         var location1City = location1?.value(forKey: "city") as? NSManagedObject
         XCTAssertEqual(location1City?.value(forKey: "name") as? String, "Oslo")
@@ -777,7 +907,9 @@ class SyncTests: XCTestCase {
 
         // Finally we update the relationships to test changing relationships
         let updatedLocations = Helper.objectsFromJSON("157-locations-update.json") as! [[String: Any]]
-        dataStack.sync(updatedLocations, inEntityNamed: "Location", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updatedLocations, inEntityNamed: "Location", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         location1 = Helper.fetchEntity("Location", predicate: NSPredicate(format: "locationID = 0"), inContext: dataStack.mainContext).first
         location1City = location1?.value(forKey: "city") as? NSManagedObject
         XCTAssertNil(location1City?.value(forKey: "name") as? String)
@@ -812,13 +944,17 @@ class SyncTests: XCTestCase {
 
         // Inserts 3 users, it ignores the relationships since no notes are found
         let users = Helper.objectsFromJSON("151-to-many-users.json") as! [[String: Any]]
-        dataStack.sync(users, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(users, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 0)
 
         // Inserts 3 notes
         let notes = Helper.objectsFromJSON("151-to-many-notes.json") as! [[String: Any]]
-        dataStack.sync(notes, inEntityNamed: "Note", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(notes, inEntityNamed: "Note", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 3)
         let savedUsers = Helper.fetchEntity("User", inContext: dataStack.mainContext)
@@ -830,7 +966,9 @@ class SyncTests: XCTestCase {
         XCTAssertEqual(total, 0)
 
         // Updates the first 3 users, but now it makes the relationships with the notes
-        dataStack.sync(users, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(users, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 3)
         var user10 = Helper.fetchEntity("User", predicate: NSPredicate(format: "userID = 10"), inContext: dataStack.mainContext).first
@@ -854,7 +992,9 @@ class SyncTests: XCTestCase {
 
         // Updates the first 3 users again, but now it changes all the relationships
         let updatedUsers = Helper.objectsFromJSON("151-to-many-users-update.json") as! [[String: Any]]
-        dataStack.sync(updatedUsers, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updatedUsers, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 3)
         user10 = Helper.fetchEntity("User", predicate: NSPredicate(format: "userID = 10"), inContext: dataStack.mainContext).first
@@ -887,13 +1027,17 @@ class SyncTests: XCTestCase {
 
         // Inserts 3 users, it ignores the relationships since no notes are found
         let users = Helper.objectsFromJSON("151-to-many-users.json") as! [[String: Any]]
-        dataStack.sync(users, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(users, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 0)
 
         // Inserts 3 notes
         let notes = Helper.objectsFromJSON("151-to-many-notes.json") as! [[String: Any]]
-        dataStack.sync(notes, inEntityNamed: "Note", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(notes, inEntityNamed: "Note", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 3)
         let savedUsers = Helper.fetchEntity("User", inContext: dataStack.mainContext)
@@ -905,7 +1049,9 @@ class SyncTests: XCTestCase {
         XCTAssertEqual(total, 0)
 
         // Updates the first 3 users, but now it makes the relationships with the notes
-        dataStack.sync(users, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(users, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 3)
         var user10 = Helper.fetchEntity("User", predicate: NSPredicate(format: "id = 10"), inContext: dataStack.mainContext).first
@@ -920,7 +1066,9 @@ class SyncTests: XCTestCase {
 
         // Updates the first 3 users again, but now it changes all the relationships
         let updatedUsers = Helper.objectsFromJSON("151-to-many-users-update.json") as! [[String: Any]]
-        dataStack.sync(updatedUsers, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updatedUsers, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 3)
         user10 = Helper.fetchEntity("User", predicate: NSPredicate(format: "id = 10"), inContext: dataStack.mainContext).first
@@ -943,13 +1091,17 @@ class SyncTests: XCTestCase {
 
         // Inserts 4 notes
         let notes = Helper.objectsFromJSON("151-many-to-many-notes.json") as! [[String: Any]]
-        dataStack.sync(notes, inEntityNamed: "Note", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(notes, inEntityNamed: "Note", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 4)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 0)
 
         // Inserts 3 tags
         let tags = Helper.objectsFromJSON("151-many-to-many-tags.json") as! [[String: Any]]
-        dataStack.sync(tags, inEntityNamed: "Tag", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(tags, inEntityNamed: "Tag", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 4)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 2)
         let savedNotes = Helper.fetchEntity("Note", inContext: dataStack.mainContext)
@@ -961,7 +1113,9 @@ class SyncTests: XCTestCase {
         XCTAssertEqual(total, 0)
 
         // Updates the first 4 notes, but now it makes the relationships with the tags
-        dataStack.sync(notes, inEntityNamed: "Note", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(notes, inEntityNamed: "Note", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 4)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 2)
         var note0 = Helper.fetchEntity("Note", predicate: NSPredicate(format: "noteID = 0"), inContext: dataStack.mainContext).first
@@ -981,7 +1135,9 @@ class SyncTests: XCTestCase {
         let updatedNotes = Helper.objectsFromJSON("151-many-to-many-notes-update.json") as! [[String: Any]]
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 4)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 2)
-        dataStack.sync(updatedNotes, inEntityNamed: "Note", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updatedNotes, inEntityNamed: "Note", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         note0 = Helper.fetchEntity("Note", predicate: NSPredicate(format: "noteID = 0"), inContext: dataStack.mainContext).first
         note0Tags = note0?.value(forKey: "tags") as? Set<NSManagedObject>
         XCTAssertEqual(note0Tags?.count, 1)
@@ -1005,13 +1161,17 @@ class SyncTests: XCTestCase {
 
         // Inserts 4 notes
         let notes = Helper.objectsFromJSON("151-many-to-many-notes.json") as! [[String: Any]]
-        dataStack.sync(notes, inEntityNamed: "Note", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(notes, inEntityNamed: "Note", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 4)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 0)
 
         // Inserts 3 tags
         let tags = Helper.objectsFromJSON("151-many-to-many-tags.json") as! [[String: Any]]
-        dataStack.sync(tags, inEntityNamed: "Tag", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(tags, inEntityNamed: "Tag", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 4)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 2)
         let savedNotes = Helper.fetchEntity("Note", inContext: dataStack.mainContext)
@@ -1023,7 +1183,9 @@ class SyncTests: XCTestCase {
         XCTAssertEqual(total, 0)
 
         // Updates the first 4 notes, but now it makes the relationships with the tags
-        dataStack.sync(notes, inEntityNamed: "Note", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(notes, inEntityNamed: "Note", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 4)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 2)
         var note0 = Helper.fetchEntity("Note", predicate: NSPredicate(format: "id = 0"), inContext: dataStack.mainContext).first
@@ -1043,7 +1205,9 @@ class SyncTests: XCTestCase {
         let updatedNotes = Helper.objectsFromJSON("151-many-to-many-notes-update.json") as! [[String: Any]]
         XCTAssertEqual(Helper.countForEntity("Note", inContext: dataStack.mainContext), 4)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 2)
-        dataStack.sync(updatedNotes, inEntityNamed: "Note", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updatedNotes, inEntityNamed: "Note", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         note0 = Helper.fetchEntity("Note", predicate: NSPredicate(format: "id = 0"), inContext: dataStack.mainContext).first
         note0Tags = note0?.value(forKey: "tags") as? NSOrderedSet
         XCTAssertEqual(note0Tags?.set.count, 1)
@@ -1066,7 +1230,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("257")
 
         let JSON = Helper.objectsFromJSON("bug-257.json") as! [String: Any]
-        dataStack.sync([JSON], inEntityNamed: "Workout", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync([JSON], inEntityNamed: "Workout", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Workout", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Exercise", inContext: dataStack.mainContext), 2)
 
@@ -1079,7 +1245,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("254")
 
         let JSON = Helper.objectsFromJSON("bug-254.json") as! [String: Any]
-        dataStack.sync([JSON], inEntityNamed: "House", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync([JSON], inEntityNamed: "House", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("House", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Human", inContext: dataStack.mainContext), 1)
 
@@ -1106,7 +1274,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("ToOne")
 
         let snakeCaseJSON = Helper.objectsFromJSON("to-one-snakecase.json") as! [String: Any]
-        dataStack.sync([snakeCaseJSON], inEntityNamed: "RentedHome", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync([snakeCaseJSON], inEntityNamed: "RentedHome", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("RentedHome", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("LegalPerson", inContext: dataStack.mainContext), 1)
 
@@ -1117,7 +1287,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("ToOne")
 
         let camelCaseJSON = Helper.objectsFromJSON("to-one-camelcase.json") as! [String: Any]
-        dataStack.sync([camelCaseJSON], inEntityNamed: "RentedHome", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync([camelCaseJSON], inEntityNamed: "RentedHome", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("RentedHome", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("LegalPerson", inContext: dataStack.mainContext), 1)
 
@@ -1129,7 +1301,9 @@ class SyncTests: XCTestCase {
     func testBug239() {
         let carsObject = Helper.objectsFromJSON("bug-239.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("239")
-        dataStack.sync(carsObject, inEntityNamed: "Racecar", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(carsObject, inEntityNamed: "Racecar", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Racecar", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Passenger", inContext: dataStack.mainContext), 2)
 
@@ -1146,13 +1320,17 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("225")
 
         let usersA = Helper.objectsFromJSON("225-a.json") as! [[String: Any]]
-        dataStack.sync(usersA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
         // This should remove the old tag reference to the user and insert this new one.
         let usersB = Helper.objectsFromJSON("225-a-replaced.json") as! [[String: Any]]
-        dataStack.sync(usersB, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersB, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 2)
 
@@ -1168,13 +1346,17 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("225")
 
         let usersA = Helper.objectsFromJSON("225-a.json") as! [[String: Any]]
-        dataStack.sync(usersA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
         // This should remove all the references.
         let usersB = Helper.objectsFromJSON("225-a-empty.json") as! [[String: Any]]
-        dataStack.sync(usersB, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersB, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
@@ -1190,12 +1372,16 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("225")
 
         let usersA = Helper.objectsFromJSON("225-a.json") as! [[String: Any]]
-        dataStack.sync(usersA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
         let usersB = Helper.objectsFromJSON("225-a-null.json") as! [[String: Any]]
-        dataStack.sync(usersB, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersB, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
@@ -1211,12 +1397,16 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("280")
 
         let routes = Helper.objectsFromJSON("280.json") as! [[String: Any]]
-        dataStack.sync(routes, inEntityNamed: "Route", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(routes, inEntityNamed: "Route", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Route", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("RoutePolylineItem", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("RouteStop", inContext: dataStack.mainContext), 1)
 
-        dataStack.sync(routes, inEntityNamed: "Route", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(routes, inEntityNamed: "Route", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Route", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("RoutePolylineItem", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("RouteStop", inContext: dataStack.mainContext), 1)
@@ -1228,7 +1418,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("283")
 
         let taskLists = Helper.objectsFromJSON("283.json") as! [[String: Any]]
-        dataStack.sync(taskLists, inEntityNamed: "TaskList", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(taskLists, inEntityNamed: "TaskList", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("TaskList", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Owner", inContext: dataStack.mainContext), 1)
 
@@ -1258,7 +1450,9 @@ class SyncTests: XCTestCase {
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
         let usersB = Helper.objectsFromJSON("320.json") as! [[String: Any]]
-        dataStack.sync(usersB, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersB, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
@@ -1298,7 +1492,9 @@ class SyncTests: XCTestCase {
 
         // Change order of slides, before it was [1, 2], now it will be [2, 1]
         let presentationOrderB = Helper.objectsFromJSON("233.json") as! [[String: Any]]
-        dataStack.sync(presentationOrderB, inEntityNamed: "Presentation", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(presentationOrderB, inEntityNamed: "Presentation", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Presentation", inContext: dataStack.mainContext), 1)
 
@@ -1341,7 +1537,9 @@ class SyncTests: XCTestCase {
 
         // Change order of slides, before it was [1, 2], now it will be [2, 1]
         let presentationOrderB = Helper.objectsFromJSON("237.json") as! [[String: Any]]
-        dataStack.sync(presentationOrderB, inEntityNamed: "Presentation", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(presentationOrderB, inEntityNamed: "Presentation", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Presentation", inContext: dataStack.mainContext), 1)
 
@@ -1359,7 +1557,9 @@ class SyncTests: XCTestCase {
     func test265() {
         let dataStack = Helper.dataStackWithModelName("265")
         let players = Helper.objectsFromJSON("265.json") as! [[String: Any]]
-        dataStack.sync(players, inEntityNamed: "Player", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(players, inEntityNamed: "Player", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         // Player 1
         // Has one player group: 1
@@ -1377,7 +1577,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("3ca82a0")
 
         let taskLists = Helper.objectsFromJSON("3ca82a0.json") as! [[String: Any]]
-        dataStack.sync(taskLists, inEntityNamed: "Article", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(taskLists, inEntityNamed: "Article", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Article", inContext: dataStack.mainContext), 2)
         XCTAssertEqual(Helper.countForEntity("ArticleTag", inContext: dataStack.mainContext), 1)
 
@@ -1389,7 +1591,9 @@ class SyncTests: XCTestCase {
     func test277() {
         let carsObject = Helper.objectsFromJSON("277.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("277")
-        dataStack.sync(carsObject, inEntityNamed: "Racecar", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(carsObject, inEntityNamed: "Racecar", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Racecar", inContext: dataStack.mainContext), 2)
         XCTAssertEqual(Helper.countForEntity("Passenger", inContext: dataStack.mainContext), 1)
 
@@ -1410,7 +1614,9 @@ class SyncTests: XCTestCase {
     func test375() {
         let speeches = Helper.objectsFromJSON("375.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("375")
-        dataStack.sync(speeches, inEntityNamed: "Speech", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(speeches, inEntityNamed: "Speech", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Speech", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Serie", inContext: dataStack.mainContext), 1)
 
@@ -1421,7 +1627,9 @@ class SyncTests: XCTestCase {
     func test375toOne() {
         let speeches = Helper.objectsFromJSON("375-to-one.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("375-to-one")
-        dataStack.sync(speeches, inEntityNamed: "Speech", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(speeches, inEntityNamed: "Speech", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Speech", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Serie", inContext: dataStack.mainContext), 1)
         dataStack.drop()
@@ -1432,10 +1640,14 @@ class SyncTests: XCTestCase {
         let speeches = Helper.objectsFromJSON("375-to-many-speeches.json") as! [[String: Any]]
 
         let dataStack = Helper.dataStackWithModelName("375")
-        dataStack.sync(series, inEntityNamed: "Serie", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(series, inEntityNamed: "Serie", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Serie", inContext: dataStack.mainContext), 1)
 
-        dataStack.sync(speeches, inEntityNamed: "Speech", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(speeches, inEntityNamed: "Speech", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Speech", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Serie", inContext: dataStack.mainContext), 1)
         let speech = Helper.fetchEntity("Speech", predicate: NSPredicate(format: "id = 4865"), inContext: dataStack.mainContext).first
@@ -1450,10 +1662,14 @@ class SyncTests: XCTestCase {
         let speeches = Helper.objectsFromJSON("375-to-one-speeches.json") as! [[String: Any]]
 
         let dataStack = Helper.dataStackWithModelName("375-to-one")
-        dataStack.sync(series, inEntityNamed: "Serie", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(series, inEntityNamed: "Serie", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Serie", inContext: dataStack.mainContext), 1)
 
-        dataStack.sync(speeches, inEntityNamed: "Speech", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(speeches, inEntityNamed: "Speech", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Speech", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Serie", inContext: dataStack.mainContext), 1)
         let speech = Helper.fetchEntity("Speech", predicate: NSPredicate(format: "id = 4865"), inContext: dataStack.mainContext).first!
@@ -1467,7 +1683,9 @@ class SyncTests: XCTestCase {
     func testRemoteKeyCompatibility() {
         let entititesJSON = Helper.objectsFromJSON("remote_key.json") as! [[String: Any]]
         let dataStack = Helper.dataStackWithModelName("RemoteKey")
-        dataStack.sync(entititesJSON, inEntityNamed: "Entity", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(entititesJSON, inEntityNamed: "Entity", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Entity", inContext: dataStack.mainContext), 1)
 
         let entity = Helper.fetchEntity("Entity", inContext: dataStack.mainContext).first!
@@ -1483,7 +1701,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("225")
 
         let usersA = Helper.objectsFromJSON("417.json") as! [[String: Any]]
-        dataStack.sync(usersA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 2)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
 
@@ -1495,7 +1715,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("225")
 
         let usersA = Helper.objectsFromJSON("373.json") as! [[String: Any]]
-        dataStack.sync(usersA, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(usersA, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 2)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 2)
 
@@ -1515,7 +1737,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("412")
 
         let forms = Helper.objectsFromJSON("412.json") as! [[String: Any]]
-        dataStack.sync(forms, inEntityNamed: "Form", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(forms, inEntityNamed: "Form", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Form", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Field", inContext: dataStack.mainContext), 0)
 
@@ -1527,20 +1751,26 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("DoublePrimaryKeys")
 
         let users = Helper.objectsFromJSON("primary-key-users.json") as! [[String: Any]]
-        dataStack.sync(users, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(users, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Category", inContext: dataStack.mainContext), 1)
 
         let organizations = Helper.objectsFromJSON("primary-key-organizations.json") as! [[String: Any]]
-        dataStack.sync(organizations, inEntityNamed: "Organization", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(organizations, inEntityNamed: "Organization", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Category", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("Organization", inContext: dataStack.mainContext), 1)
 
         let organizations2 = Helper.objectsFromJSON("primary-key-organizations-update.json") as! [[String: Any]]
-        dataStack.sync(organizations2, inEntityNamed: "Organization", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(organizations2, inEntityNamed: "Organization", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Category", inContext: dataStack.mainContext), 2)
@@ -1554,7 +1784,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("447")
 
         let website = Helper.objectsFromJSON("447.json") as! [[String: Any]]
-        dataStack.sync(website, inEntityNamed: "Website", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(website, inEntityNamed: "Website", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Website", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Tag", inContext: dataStack.mainContext), 1)
@@ -1568,13 +1800,17 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("457")
         let subcats = Helper.objectsFromJSON("457-subcategories.json") as! [[String: Any]]
 
-        dataStack.sync(subcats, inEntityNamed: "Subcategory", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(subcats, inEntityNamed: "Subcategory", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         
         XCTAssertEqual(Helper.countForEntity("Subcategory", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Category", inContext: dataStack.mainContext), 1)
         
         let products = Helper.objectsFromJSON("457-products.json") as! [[String: Any]]
-        dataStack.sync(products, inEntityNamed: "Product", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(products, inEntityNamed: "Product", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         let result = Helper.fetchEntity("Product", inContext: dataStack.mainContext)
         XCTAssertEqual(result.count, 1)
@@ -1594,12 +1830,16 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("422OneToMany")
         let initial = Helper.objectsFromJSON("422-one-to-many-insert-option-initial.json") as! [[String: Any]]
 
-        dataStack.sync(initial, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initial, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 1)
 
         let updated = Helper.objectsFromJSON("422-one-to-many-insert-option-update.json") as! [[String: Any]]
-        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .insertRelationships], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .insertRelationships], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 2)
 
@@ -1613,12 +1853,16 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("422OneToMany")
 
         let initial = Helper.objectsFromJSON("422-one-to-many-update-option-initial.json") as! [[String: Any]]
-        dataStack.sync(initial, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initial, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 1)
 
         let updated = Helper.objectsFromJSON("422-one-to-many-update-option-update.json") as! [[String: Any]]
-        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .updateRelationships], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .updateRelationships], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 1)
 
@@ -1632,12 +1876,16 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("422OneToMany")
 
         let initial = Helper.objectsFromJSON("422-one-to-many-delete-option-initial.json") as! [[String: Any]]
-        dataStack.sync(initial, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initial, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 2)
 
         let updated = Helper.objectsFromJSON("422-one-to-many-delete-option-update.json") as! [[String: Any]]
-        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .deleteRelationships], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .deleteRelationships], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 1)
 
@@ -1655,12 +1903,16 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("422ManyToMany")
         let initial = Helper.objectsFromJSON("422-many-to-many-insert-option-initial.json") as! [[String: Any]]
 
-        dataStack.sync(initial, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initial, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 1)
 
         let updated = Helper.objectsFromJSON("422-many-to-many-insert-option-update.json") as! [[String: Any]]
-        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .insertRelationships], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .insertRelationships], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 2)
 
@@ -1674,12 +1926,16 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("422ManyToMany")
 
         let initial = Helper.objectsFromJSON("422-many-to-many-update-option-initial.json") as! [[String: Any]]
-        dataStack.sync(initial, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initial, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 1)
 
         let updated = Helper.objectsFromJSON("422-many-to-many-update-option-update.json") as! [[String: Any]]
-        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .updateRelationships], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .updateRelationships], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 1)
 
@@ -1693,12 +1949,16 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("422ManyToMany")
 
         let initial = Helper.objectsFromJSON("422-many-to-many-delete-option-initial.json") as! [[String: Any]]
-        dataStack.sync(initial, inEntityNamed: "User", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initial, inEntityNamed: "User", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Message", inContext: dataStack.mainContext), 2)
 
         let updated = Helper.objectsFromJSON("422-many-to-many-delete-option-update.json") as! [[String: Any]]
-        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .deleteRelationships], completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updated, inEntityNamed: "User", operations: [.insert, .update, .delete, .deleteRelationships], completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("User", inContext: dataStack.mainContext), 1)
         // count the messages that user 1 has instead of counting all messages
         let userMessageCount = Helper.countForEntity("Message", predicate: NSPredicate(format: "ANY users.id = 1"), inContext: dataStack.mainContext)
@@ -1715,7 +1975,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("476")
 
         let data = Helper.objectsFromJSON("476.json") as! [[String: Any]]
-        dataStack.sync(data, inEntityNamed: "FitnessProfile", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(data, inEntityNamed: "FitnessProfile", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("FitnessProfile", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("UserWeight", inContext: dataStack.mainContext), 1)
@@ -1727,7 +1989,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("480")
 
         let data = Helper.objectsFromJSON("480.json") as! [[String: Any]]
-        dataStack.sync(data, inEntityNamed: "Report", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(data, inEntityNamed: "Report", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
 
         XCTAssertEqual(Helper.countForEntity("Report", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("HistoryItem", inContext: dataStack.mainContext), 6)
@@ -1740,7 +2004,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("519")
         
         let data = Helper.objectsFromJSON("519.json") as! [[String: Any]]
-        dataStack.sync(data, inEntityNamed: "Book", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(data, inEntityNamed: "Book", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         
         XCTAssertEqual(Helper.countForEntity("Book", inContext: dataStack.mainContext), 2)
         XCTAssertEqual(Helper.countForEntity("Author", inContext: dataStack.mainContext), 3)
@@ -1753,11 +2019,15 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("ordered-many-to-many-update")
         
         let initialItems = Helper.objectsFromJSON("inital-ordered-many-to-many-update.json") as! [[String: Any]]
-        dataStack.sync(initialItems, inEntityNamed:"Item", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initialItems, inEntityNamed:"Item", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Item", inContext: dataStack.mainContext), 5)
 
         let initialList = Helper.objectsFromJSON("ordered-many-to-many-update-inital.json") as! [[String: Any]]
-        dataStack.sync(initialList, inEntityNamed:"List", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initialList, inEntityNamed:"List", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("List", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Item", inContext: dataStack.mainContext), 5)
         
@@ -1766,7 +2036,9 @@ class SyncTests: XCTestCase {
         XCTAssertEqual(unpopulatedListItems.count,  0)
         
         let updated = Helper.objectsFromJSON("ordered-many-to-many-update-update.json") as! [[String: Any]]
-        dataStack.sync(updated, inEntityNamed:"List", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updated, inEntityNamed:"List", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("List", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Item", inContext: dataStack.mainContext), 5)
         
@@ -1788,7 +2060,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("ordered-many-to-many-update")
         
         let initialItems = Helper.objectsFromJSON("453-to-many-ordered-relationship-objects-initial.json") as! [[String: Any]]
-        dataStack.sync(initialItems, inEntityNamed:"List", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initialItems, inEntityNamed:"List", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Item", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("List", inContext: dataStack.mainContext), 1)
         
@@ -1800,7 +2074,9 @@ class SyncTests: XCTestCase {
         XCTAssertEqual((items.lastObject as! NSManagedObject).value(forKey:"id") as? Int16, 3)
         
         let updated = Helper.objectsFromJSON("453-to-many-ordered-relationship-objects-update.json") as! [[String: Any]]
-        dataStack.sync(updated, inEntityNamed:"List", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updated, inEntityNamed:"List", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("List", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Item", inContext: dataStack.mainContext), 4)
         
@@ -1819,7 +2095,9 @@ class SyncTests: XCTestCase {
         let dataStack = Helper.dataStackWithModelName("ordered-many-to-many-update")
         
         let initialItems = Helper.objectsFromJSON("453-to-many-ordered-relationship-objects-initial.json") as! [[String: Any]]
-        dataStack.sync(initialItems, inEntityNamed:"List", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(initialItems, inEntityNamed:"List", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Item", inContext: dataStack.mainContext), 3)
         XCTAssertEqual(Helper.countForEntity("List", inContext: dataStack.mainContext), 1)
         
@@ -1832,11 +2110,15 @@ class SyncTests: XCTestCase {
 
         // Add the future 2 items 4, 5 since we're sycing by ids.
         let additionalItems = Helper.objectsFromJSON("453-to-many-ordered-relationship-item-insert.json") as! [[String: Any]]
-        dataStack.sync(additionalItems, inEntityNamed:"Item", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(additionalItems, inEntityNamed:"Item", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("Item", inContext: dataStack.mainContext), 5)
         
         let updated = Helper.objectsFromJSON("453-to-many-ordered-relationship-ids-update.json") as! [[String: Any]]
-        dataStack.sync(updated, inEntityNamed:"List", completion: nil)
+        syncExpectation = expectation(description: "Sync Expectation")
+        dataStack.sync(updated, inEntityNamed:"List", completion: syncCompletion)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(Helper.countForEntity("List", inContext: dataStack.mainContext), 1)
         XCTAssertEqual(Helper.countForEntity("Item", inContext: dataStack.mainContext), 5)
         
