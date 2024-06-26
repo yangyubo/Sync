@@ -6,7 +6,7 @@ import Sync
 class SyncTests: XCTestCase {
     
     var syncExpectation: XCTestExpectation!
-    var syncCompletion: ((_ error: NSError?) -> Void)!
+    var syncCompletion: ((Error?) -> Void)!
     var synchronous = false
     
     var backExpectation: XCTestExpectation!

@@ -11,16 +11,16 @@ extension NSManagedObjectContext {
     ///   - changes: The array of dictionaries used in the sync process.
     ///   - entityName: The name of the entity to be synced.
     ///   - completion: The completion block, it returns an error if something in the Sync process goes wrong.
-    public func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, completion: ((_ error: NSError?) -> Void)?) {
+    public func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, completion: ((Error?) -> Void)?) {
         Sync.changes(changes, inEntityNamed: entityName, predicate: nil, parent: nil, parentRelationship: nil, inContext: self, operations: .all, completion: completion)
     }
 
-    public func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, parentRelationship: NSRelationshipDescription?, operations: Sync.OperationOptions, completion: ((_ error: NSError?) -> Void)?) {
+    public func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, parentRelationship: NSRelationshipDescription?, operations: Sync.OperationOptions, completion: ((Error?) -> Void)?) {
 
-        var error: NSError?
+        var error: Error?
         do {
             try Sync.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: parent, parentRelationship: parentRelationship, inContext: self, operations: operations, shouldContinueBlock: nil, objectJSONBlock: nil)
-        } catch let syncError as NSError {
+        } catch let syncError {
             error = syncError
         }
 
@@ -38,7 +38,7 @@ extension NSManagedObjectContext {
     ///   - predicate: The predicate used to filter out changes, if you want to exclude some local items to be taken in account in the Sync process, you just need to provide this predicate.
     ///   - parent: The parent of the synced items, useful if you are syncing the childs of an object, for example an Album has many photos, if this photos don't incldue the album's JSON object.
     ///   - completion: The completion block, it returns an error if something in the Sync process goes wrong.
-    public func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, completion: ((_ error: NSError?) -> Void)?) {
+    public func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, completion: ((Error?) -> Void)?) {
         Sync.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: parent, parentRelationship: nil, inContext: self, operations: .all, completion: completion)
     }
 
@@ -110,16 +110,16 @@ extension Sync {
     ///   - context: The Core Data context to be used.
     ///   - parameter operations: The type of operations to be applied to the data, Insert, Update, Delete or any possible combination.
     ///   - completion: The completion block, it returns an error if something in the Sync process goes wrong.
-    public class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, inContext context: NSManagedObjectContext, operations: Sync.OperationOptions = .all, completion: ((_ error: NSError?) -> Void)?) {
+    public class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, inContext context: NSManagedObjectContext, operations: Sync.OperationOptions = .all, completion: ((Error?) -> Void)?) {
         self.changes(changes, inEntityNamed: entityName, predicate: nil, parent: nil, parentRelationship: nil, inContext: context, operations: operations, completion: completion)
     }
 
-    public class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, parentRelationship: NSRelationshipDescription?, inContext context: NSManagedObjectContext, operations: Sync.OperationOptions, completion: ((_ error: NSError?) -> Void)?) {
+    public class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, parentRelationship: NSRelationshipDescription?, inContext context: NSManagedObjectContext, operations: Sync.OperationOptions, completion: ((Error?) -> Void)?) {
 
-        var error: NSError?
+        var error: Error?
         do {
             try self.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: parent, parentRelationship: parentRelationship, inContext: context, operations: operations, shouldContinueBlock: nil, objectJSONBlock: nil)
-        } catch let syncError as NSError {
+        } catch let syncError {
             error = syncError
         }
 
@@ -140,7 +140,7 @@ extension Sync {
      - parameter context: The context where the items will be created, in general this should be a background context.
      - parameter completion: The completion block, it returns an error if something in the Sync process goes wrong.
      */
-    public class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, inContext context: NSManagedObjectContext, completion: ((_ error: NSError?) -> Void)?) {
+    public class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, inContext context: NSManagedObjectContext, completion: ((Error?) -> Void)?) {
         self.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: parent, parentRelationship: nil, inContext: context, operations: .all, completion: completion)
     }
 }

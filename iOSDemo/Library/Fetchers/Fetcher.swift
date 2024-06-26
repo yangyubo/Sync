@@ -41,7 +41,7 @@ class Fetcher {
                     completion(.success)
                 }
             } else if let error = response.error {
-                completion(.failure(error as NSError))
+                completion(.failure(error))
             } else {
                 fatalError("No error, no failure")
             }
@@ -63,5 +63,5 @@ class Fetcher {
 
 enum VoidResult {
     case success
-    case failure(NSError)
+    case failure(Error)
 }

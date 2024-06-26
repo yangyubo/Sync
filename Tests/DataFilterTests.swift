@@ -394,7 +394,7 @@ extension NSManagedObjectContext {
                         result[fetchedID] = objectID
                     }
                 }
-            } catch let error as NSError {
+            } catch {
                 print("error: \(error)")
             }
         }

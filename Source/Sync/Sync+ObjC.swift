@@ -52,7 +52,7 @@ public extension Sync {
      - parameter operations: The type of operations to be applied to the data, it should be a value of CompatibleOperationOptions.
      - parameter completion: The completion block, it returns an error if something in the Sync process goes wrong.
      */
-    class func compatibleChanges(_ changes: [[String: Any]], inEntityNamed entityName: String, persistentContainer: NSPersistentContainer, operations: CompatibleOperationOptions, completion: ((_ error: NSError?) -> Void)?) {
+    class func compatibleChanges(_ changes: [[String: Any]], inEntityNamed entityName: String, persistentContainer: NSPersistentContainer, operations: CompatibleOperationOptions, completion: ((Error?) -> Void)?) {
         self.changes(changes, inEntityNamed: entityName, persistentContainer: persistentContainer, operations: operations.operationOptions, completion: completion)
     }
     
@@ -70,7 +70,7 @@ public extension Sync {
      - parameter operations: The type of operations to be applied to the data, it should be a value of CompatibleOperationOptions.
      - parameter completion: The completion block, it returns an error if something in the Sync process goes wrong.
      */
-    class func compatibleChanges(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, persistentContainer: NSPersistentContainer, operations: CompatibleOperationOptions, completion: ((_ error: NSError?) -> Void)?) {
+    class func compatibleChanges(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, persistentContainer: NSPersistentContainer, operations: CompatibleOperationOptions, completion: ((Error?) -> Void)?) {
         persistentContainer.performBackgroundTask { backgroundContext in
             self.changes(changes, inEntityNamed: entityName, predicate: predicate, persistentContainer: persistentContainer, operations: operations.operationOptions, completion: completion)
         }

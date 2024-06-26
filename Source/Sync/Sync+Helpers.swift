@@ -12,7 +12,7 @@ public extension Sync {
      - parameter dataStack: The DataStack instance.
      - parameter completion: The completion block, it returns an error if something in the Sync process goes wrong.
      */
-    class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, persistentContainer: NSPersistentContainer, completion: ((_ error: NSError?) -> Void)?) {
+    class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, persistentContainer: NSPersistentContainer, completion: ((Error?) -> Void)?) {
         self.changes(changes, inEntityNamed: entityName, predicate: nil, persistentContainer: persistentContainer, operations: .all, completion: completion)
     }
 
@@ -27,7 +27,7 @@ public extension Sync {
      - parameter operations: The type of operations to be applied to the data, Insert, Update, Delete or any possible combination.
      - parameter completion: The completion block, it returns an error if something in the Sync process goes wrong.
      */
-    class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, persistentContainer: NSPersistentContainer, operations: Sync.OperationOptions, completion: ((_ error: NSError?) -> Void)?) {
+    class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, persistentContainer: NSPersistentContainer, operations: Sync.OperationOptions, completion: ((Error?) -> Void)?) {
         self.changes(changes, inEntityNamed: entityName, predicate: nil, persistentContainer: persistentContainer, operations: operations, completion: completion)
     }
 
@@ -44,7 +44,7 @@ public extension Sync {
      - parameter dataStack: The DataStack instance.
      - parameter completion: The completion block, it returns an error if something in the Sync process goes wrong.
      */
-    class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, parent: NSManagedObject, persistentContainer: NSPersistentContainer, completion: ((_ error: NSError?) -> Void)?) {
+    class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, parent: NSManagedObject, persistentContainer: NSPersistentContainer, completion: ((Error?) -> Void)?) {
         persistentContainer.performBackgroundTask { backgroundContext in
             let safeParent = parent.sync_copyInContext(backgroundContext)
             guard let entity = NSEntityDescription.entity(forEntityName: entityName, in: backgroundContext) else { fatalError("Couldn't find entity named: \(entityName)") }
