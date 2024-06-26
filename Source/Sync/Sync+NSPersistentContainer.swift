@@ -27,7 +27,9 @@ public extension NSPersistentContainer {
      - parameter completion: The completion block, it returns an error if something in the Sync process goes wrong.
      */
     func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, completion: ((Error?) -> Void)?) {
-        Sync.changes(changes, inEntityNamed: entityName, predicate: predicate, persistentContainer: self, operations: .all, completion: completion)
+        performBackgroundTask { backgroundContext in
+            Sync.changes(changes, inEntityNamed: entityName, predicate: predicate, persistentContainer: self, operations: .all, completion: completion)
+        }
     }
 
     /**
@@ -43,7 +45,7 @@ public extension NSPersistentContainer {
      - parameter completion: The completion block, it returns an error if something in the Sync process goes wrong.
      */
     func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, parent: NSManagedObject?, parentRelationship: NSRelationshipDescription?, operations: Sync.OperationOptions, completion: ((Error?) -> Void)?) {
-        self.performBackgroundTask { backgroundContext in
+        performBackgroundTask { backgroundContext in
             Sync.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: parent, parentRelationship: parentRelationship, inContext: backgroundContext, operations: operations, completion: completion)
         }
     }
@@ -88,7 +90,7 @@ public extension NSPersistentContainer {
     ///   - operations: The type of operations to be applied to the data, Insert, Update, Delete or any possible combination.
     ///   - completion: The completion block, it returns an error if something in the Sync process goes wrong.
     func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, operations: Sync.OperationOptions, completion: ((Error?) -> Void)?) {
-        self.performBackgroundTask { backgroundContext in
+        performBackgroundTask { backgroundContext in
             Sync.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: nil, parentRelationship: nil, inContext: backgroundContext, operations: operations, completion: completion)
         }
     }
@@ -101,7 +103,7 @@ public extension NSPersistentContainer {
     ///   - id: The primary key.
     ///   - completion: The completion block.
     func insertOrUpdate(_ changes: [String: Any], inEntityNamed entityName: String, completion: @escaping (_ result: SyncResult<Any>) -> Void) {
-        self.performBackgroundTask { backgroundContext in
+        performBackgroundTask { backgroundContext in
             do {
                 let result = try Sync.insertOrUpdate(changes, inEntityNamed: entityName, using: backgroundContext)
                 let localPrimaryKey = result.entity.sync_localPrimaryKey()!
@@ -124,7 +126,7 @@ public extension NSPersistentContainer {
     ///   - operations: The type of operations to be applied to the data, Insert, Update, Delete or any possible combination.
     ///   - completion: The completion block, it returns an error if something in the Sync process goes wrong.
     func sync(_ changes: [[String: Any]], inEntityNamed entityName: String, operations: Sync.OperationOptions, completion: ((Error?) -> Void)?) {
-        self.performBackgroundTask { backgroundContext in
+        performBackgroundTask { backgroundContext in
             Sync.changes(changes, inEntityNamed: entityName, predicate: nil, parent: nil, parentRelationship: nil, inContext: backgroundContext, operations: operations, completion: completion)
         }
     }
@@ -137,7 +139,7 @@ public extension NSPersistentContainer {
     ///   - entityName: The name of the entity.
     ///   - completion: The completion block.
     func update(_ id: Any, with changes: [String: Any], inEntityNamed entityName: String, completion: @escaping (_ result: SyncResult<Any>) -> Void) {
-        self.performBackgroundTask { backgroundContext in
+        performBackgroundTask { backgroundContext in
             do {
                 var updatedID: Any?
                 if let result = try Sync.update(id, with: changes, inEntityNamed: entityName, using: backgroundContext) {
@@ -159,7 +161,7 @@ public extension NSPersistentContainer {
     ///   - entityName: The name of the entity.
     ///   - completion: The completion block.
     func delete(_ id: Any, inEntityNamed entityName: String, completion: @escaping (Error?) -> Void) {
-        self.performBackgroundTask { backgroundContext in
+        performBackgroundTask { backgroundContext in
             do {
                 try Sync.delete(id, inEntityNamed: entityName, using: backgroundContext)
                 completion(nil)
@@ -179,7 +181,6 @@ public extension NSPersistentContainer {
     @discardableResult
     func fetch<ResultType: NSManagedObject>(_ id: Any, inEntityNamed entityName: String) throws -> ResultType? {
         Sync.verifyContextSafety(context: self.viewContext)
-
         return try Sync.fetch(id, inEntityNamed: entityName, using: self.viewContext)
     }
 
@@ -193,7 +194,6 @@ public extension NSPersistentContainer {
     @discardableResult
     func insertOrUpdate<ResultType: NSManagedObject>(_ changes: [String: Any], inEntityNamed entityName: String) throws -> ResultType {
         Sync.verifyContextSafety(context: self.viewContext)
-
         return try Sync.insertOrUpdate(changes, inEntityNamed: entityName, using: self.viewContext)
     }
 
@@ -208,7 +208,6 @@ public extension NSPersistentContainer {
     @discardableResult
     func update<ResultType: NSManagedObject>(_ id: Any, with changes: [String: Any], inEntityNamed entityName: String) throws -> ResultType? {
         Sync.verifyContextSafety(context: self.viewContext)
-
         return try Sync.update(id, with: changes, inEntityNamed: entityName, using: self.viewContext)
     }
 
@@ -220,7 +219,6 @@ public extension NSPersistentContainer {
     /// - Throws: Core Data related issues.
     func delete(_ id: Any, inEntityNamed entityName: String, using context: NSManagedObjectContext) throws {
         Sync.verifyContextSafety(context: self.viewContext)
-
         return try Sync.delete(id, inEntityNamed: entityName, using: self.viewContext)
     }
 }
@@ -239,7 +237,9 @@ public extension Sync {
      - parameter completion: The completion block, it returns an error if something in the Sync process goes wrong.
      */
     class func changes(_ changes: [[String: Any]], inEntityNamed entityName: String, predicate: NSPredicate?, persistentContainer: NSPersistentContainer, completion: ((Error?) -> Void)?) {
-        self.changes(changes, inEntityNamed: entityName, predicate: predicate, persistentContainer: persistentContainer, operations: .all, completion: completion)
+        persistentContainer.performBackgroundTask { backgroundContext in
+            self.changes(changes, inEntityNamed: entityName, predicate: predicate, persistentContainer: persistentContainer, operations: .all, completion: completion)
+        }
     }
 
     /**
@@ -260,4 +260,5 @@ public extension Sync {
             self.changes(changes, inEntityNamed: entityName, predicate: predicate, parent: nil, parentRelationship: nil, inContext: backgroundContext, operations: operations, completion: completion)
         }
     }
+    
 }

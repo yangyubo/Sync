@@ -13,7 +13,7 @@ class DeleteTests: XCTestCase {
         XCTAssertEqual(1, Helper.countForEntity("User", inContext: container.viewContext))
         
         let expectation = expectation(description: "\(#function)")
-        try! container.delete("id", inEntityNamed: "User") {_ in
+        container.delete("id", inEntityNamed: "User") {_ in
             expectation.fulfill()
         }
         waitForExpectations(timeout: 10)
@@ -32,7 +32,7 @@ class DeleteTests: XCTestCase {
         XCTAssertEqual(1, Helper.countForEntity("User", inContext: container.viewContext))
         
         let expectation = expectation(description: "\(#function)")
-        try! container.delete(1, inEntityNamed: "User") { _ in
+        container.delete(1, inEntityNamed: "User") { _ in
             expectation.fulfill()
         }
         waitForExpectations(timeout: 10)

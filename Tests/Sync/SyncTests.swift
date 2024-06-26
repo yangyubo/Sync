@@ -17,7 +17,7 @@ class SyncTests: XCTestCase {
         // syncExpectation = expectation(description: "Sync Expectation")
         syncCompletion = { [weak self] error in
             if let error = error {
-                XCTFail(error.description)
+                XCTFail(error.localizedDescription)
             }
             self?.synchronous = true
             self?.syncExpectation.fulfill()

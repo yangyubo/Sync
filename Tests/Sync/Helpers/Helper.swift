@@ -85,7 +85,9 @@ private extension NSPersistentContainer {
         self.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
         
         self.loadPersistentStores { storeDescription, error in
-            fatalError("Failed to load persistent stores: \(error)")
+            if let error = error {
+                fatalError("Failed to load persistent stores: \(error)")
+            }
         }
         
         // Merge settings
